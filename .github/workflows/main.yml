@@ -1,1 +1,38 @@
-# TODO: Write the GitHub Actions here
+name: CI/CD Pipeline for TalkasaurusRex
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, edited]
+  push:
+    branches:
+      - main
+
+jobs:
+  build_and_test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v2
+
+      - name: Parse Pull Request Comment
+        id: comment
+        run: echo "::set-output name=body::$(jq -r '.comment.body' <<< '${{ github.event.comment }}')"
+
+      - name: Stop Pipeline If Review Is Required
+        run: |
+          if [[ "${{ steps.comment.outputs.body }}" == *"[manual_review]"* ]]; then
+            echo "Manual review is required. Stopping pipeline...";
+            exit 1;
+          fi
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.9
+
+      - name: Install Dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run Tests
+      #just using a placeholder 'python -m unittest' command here
+        run: python -m unittest

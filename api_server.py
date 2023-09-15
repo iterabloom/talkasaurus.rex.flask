@@ -20,7 +20,6 @@ from google.cloud import speech_v1p1beta1 as speech
 from google.cloud import texttospeech
 from queue import Queue
 
-
 def transcribe_audio_stream(stream):
     # TODO: add error handling blocks to handle potential failures during transcription process
     # Instantiate client
@@ -55,7 +54,7 @@ def transcribe_audio_stream(stream):
 
 
 
-def convert_text_to_speech(text):
+def convert_text_to_speech(text: str):
     # TODO: handle audio output interruptions. If the API encounters an error while synthesizing speech, the system should be able to retry the operation and/or handle it gracefully
     client = texttospeech.TextToSpeechClient()
 
@@ -102,24 +101,49 @@ def handle_message(data):
     socketio.emit('response', {'message': response})
 
 
-def generate_ai_response(user_message): 
-    #TODO: error handling if there's an issue with the GPT API call:
+def generate_ai_response(user_message: str) -> str: 
+    # TODO: error handling if there's an issue with the GPT API call:
     #      implement a retry mechanism and
-    #      implement a swtch to a backup language model/ model provider
+    #      implement a switch to a backup language model/ model provider
 
     # Add a dictionary for conversation history
-    # TODO: make a proper Python class for this conversation history dictionary, to improve its definition, error handling and maintaining the conversation history
-    conversation = {'messages': []}
-    conversation['messages'].append({"role": "user", "content": user_message})
-    
-    response = openai.ChatCompletion.create(
-      model="gpt-4-32k",
-      messages=conversation['messages'],
-      max_tokens=150
-    )
-    
-    # Update conversation history
-    conversation['messages'].append({"role": "assistant", "content": response['choices'][0]['message']['content']})
+    conversation = {
+        'messages': [
+            # TODO: append past user and ai messages to this list to maintain a history of the conversation.
+            {"role": "user", "content": user_message}
+        ]
+    }
+   
+    try:
+        response = openai.ChatCompletion.create(
+          model="gpt-4-32k",
+          messages=conversation['messages'],
+          max_tokens=150
+        )
+
+        # Update conversation history
+        conversation['messages'].append(
+            {"role": "assistant",
+             "content": response['choices'][0]['message']['content']}
+        )
+    except Exception as ex:
+        # Handle exception
+        print(f"Failed to generate response from GPT AI. Details: {str(ex)}")
+        # Strategy to generate a backup text could be implemented here. E.g., pre-defined or simpler model outputs
+        response = type(
+            '', (), {
+                'choices': [
+                    type(
+                        '', (), {
+                            'message': type(
+                                '', (), {'content': "Sorry, I am currently unable to generate a response"}
+                            )
+                        }
+                    )
+                ]
+            }
+        )
+
     return response['choices'][0]['message']['content']
 
 
