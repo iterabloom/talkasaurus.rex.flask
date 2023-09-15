@@ -1,0 +1,38 @@
+{
+    "name": "My Project",
+    "build": {
+        "dockerfile": "Dockerfile",
+        "context": "..",
+        "args": {
+            // Update 'VARIANT' to pick a Python version: 3, 3.7, 3.8, 3.9
+            "VARIANT": "3.8",
+            "NODE_VERSION": "14"
+        }
+    },
+
+    // Python version
+    "image": "python:3.8-slim-buster",
+
+    // Use 'forwardPorts' to make a list of any ports that you want to expose locally.
+    "forwardPorts": [],
+
+    // adding some settings that will be beneficial for Python
+    "settings": {
+        "terminal.integrated.shell.linux": "/bin/bash",
+        "python.pythonPath": "/usr/local/bin/python",
+        "python.linting.enabled": true,
+        "python.linting.pylintEnabled": true,
+        "python.formatting.autopep8Path": "/usr/local/py-utils/bin/autopep8",
+        "python.formatting.blackPath": "/usr/local/py-utils/bin/black",
+        "python.formatting.yapfPath": "/usr/local/py-utils/bin/yapf",
+        "python.linting.banditPath": "/usr/local/py-utils/bin/bandit",
+        "python.linting.flake8Path": "/usr/local/py-utils/bin/flake8",
+        "python.linting.mypyPath": "/usr/local/py-utils/bin/mypy",
+        "python.linting.pycodestylePath": "/usr/local/py-utils/bin/pycodestyle",
+        "python.linting.pydocstylePath": "/usr/local/py-utils/bin/pydocstyle",
+        "python.linting.pylintPath": "/usr/local/py-utils/bin/pylint"
+    },
+
+    // use the Bash shell
+    "remoteUser": "root"
+}
