@@ -71,8 +71,7 @@ def convert_text_to_speech(text: str):
         input=synthesis_input, voice=voice, audio_config=audio_config
     )
 
-    # Save the synthesized speech to a file
-    # TODO: directly stream the audio to the frontend, eliminating the need to manage audio files
+    # TODO: completely rewrite below 3 lines to directly stream the audio to the frontend, eliminating the need to manage audio files
     with open("output.mp3", "wb") as out:
         out.write(response.audio_content)
     print("Audio content written to file output.mp3")
