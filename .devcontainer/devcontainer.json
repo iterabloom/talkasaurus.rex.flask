@@ -6,9 +6,7 @@
     "features": {
         "ghcr.io/devcontainers/features/common-utils:2":{
             "installZsh": "true",
-            "username": "vscode",
-            "userUid": "1000",
-            "userGid": "1000",
+            "username": "node",
             "upgradePackages": "true"
         },
         "ghcr.io/devcontainers/features/python:1": "none",
