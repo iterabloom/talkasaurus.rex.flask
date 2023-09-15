@@ -4,7 +4,8 @@
 #       These data could be used to analyze and tune the user's conversational style over time. 
 #       it will be beneficial to implement Machine Learning models for user style adaptation. 
 #       This could start as another microservice that processes the data and learns from it.
-# TODO: If the user input and AI response data become too large - archiving policy/solution?
+# TODO: As the user input and AI response data become large, establish a data archiving policy
+# TODO: a new method/service needs to be defined to process and analyze the user’s conversation style
 
 from flask import Flask, render_template, send_from_directory
 from flask_socketio import SocketIO
@@ -20,6 +21,7 @@ from queue import Queue
 
 
 def transcribe_audio_stream(stream):
+    # TODO: add error handling blocks
     # Instantiate client
     client = speech.SpeechClient()
 
@@ -53,6 +55,7 @@ def transcribe_audio_stream(stream):
 
 
 def convert_text_to_speech(text):
+    # TODO: add error handling blocks
     client = texttospeech.TextToSpeechClient()
 
     synthesis_input = texttospeech.SynthesisInput({"text": text})
@@ -69,7 +72,7 @@ def convert_text_to_speech(text):
     )
 
     # Save the synthesized speech to a file
-    # TODO: create a unique name every time this method gets called or directly stream the audio to the frontend, eliminating the need to manage the audio files
+    # TODO: directly stream the audio to the frontend, eliminating the need to manage audio files
     with open("output.mp3", "wb") as out:
         out.write(response.audio_content)
     print("Audio content written to file output.mp3")
@@ -77,6 +80,7 @@ def convert_text_to_speech(text):
 
 def storeConversationData(user_message, response):
     # TODO implement this method with consideration to user privacy
+    #      the user interaction data should be anonymized, persisted, and handled properly to ensure user’s privacy and efficient data management
 
 
 app = Flask(__name__, static_folder='talkasaurus-react/build')
@@ -101,12 +105,13 @@ def generate_ai_response(user_message):
     #TODO: error handling if there's an issue with the GPT API call -
     #      A retry mechanism or switching to backup language models
 
-    # Add a dictionary for conversation history 
+    # Add a dictionary for conversation history
+    # TODO: make a new Python class for this conversation history dictionary, to improve its definition, error handling and maintaining the conversation
     conversation = {'messages': []}
     conversation['messages'].append({"role": "user", "content": user_message})
     
     response = openai.ChatCompletion.create(
-      model="gpt-4.32k",
+      model="gpt-4-32k",
       messages=conversation['messages'],
       max_tokens=150
     )
