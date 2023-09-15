@@ -6,6 +6,7 @@
 #       This could start as another microservice that processes the data and learns from it.
 # TODO: As the user input and AI response data become large, establish a data archiving policy
 # TODO: a new method/service needs to be defined to process and analyze the user’s conversation style
+#       define classes or functions that utilise machine learning (either local or remote) to analyse user inputs for style, language syntax, and verbal patterns 
 
 from flask import Flask, render_template, send_from_directory
 from flask_socketio import SocketIO
@@ -21,7 +22,7 @@ from queue import Queue
 
 
 def transcribe_audio_stream(stream):
-    # TODO: add error handling blocks
+    # TODO: add error handling blocks to handle potential failures during transcription process
     # Instantiate client
     client = speech.SpeechClient()
 
@@ -50,12 +51,12 @@ def transcribe_audio_stream(stream):
 
             # TODO Add processing logic for each response
             for response in responses:
-                # TODO Process responses
+                # TODO extract the transcribed text from each response and append it to a string that holds the entire transcription of the conversation
 
 
 
 def convert_text_to_speech(text):
-    # TODO: add error handling blocks
+    # TODO: handle audio output interruptions. If the API encounters an error while synthesizing speech, the system should be able to retry the operation and/or handle it gracefully
     client = texttospeech.TextToSpeechClient()
 
     synthesis_input = texttospeech.SynthesisInput({"text": text})
@@ -102,11 +103,12 @@ def handle_message(data):
 
 
 def generate_ai_response(user_message): 
-    #TODO: error handling if there's an issue with the GPT API call -
-    #      A retry mechanism or switching to backup language models
+    #TODO: error handling if there's an issue with the GPT API call:
+    #      implement a retry mechanism and
+    #      implement a swtch to a backup language model/ model provider
 
     # Add a dictionary for conversation history
-    # TODO: make a new Python class for this conversation history dictionary, to improve its definition, error handling and maintaining the conversation
+    # TODO: make a proper Python class for this conversation history dictionary, to improve its definition, error handling and maintaining the conversation history
     conversation = {'messages': []}
     conversation['messages'].append({"role": "user", "content": user_message})
     
