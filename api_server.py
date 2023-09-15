@@ -2,6 +2,8 @@
 #       These data could be used to analyze and tune the user's conversational style over time. 
 #       it will be beneficial to implement Machine Learning models for user style adaptation. 
 #       This could start as another microservice that processes the data and learns from it.
+# TODO: If the user input and AI response data become too large - archiving policy/solution?
+
 from flask import Flask, render_template, send_from_directory
 from flask_socketio import SocketIO
 import openai
@@ -12,12 +14,14 @@ openai.api_key = os.environ.get('OPENAI_API_KEY')
 
 from google.cloud import speech_v1p1beta1 as speech
 from google.cloud import texttospeech
+from queue import Queue
 
-# TODO: This would require an audio stream chunked into parts to work most effectively, which would 
-#       require changes based on the specific implementation of audio input.
+
 def transcribe_audio_stream(stream):
+    # Instantiate client
     client = speech.SpeechClient()
 
+    # Set configuration
     config = speech.RecognitionConfig(
         encoding=speech.RecognitionConfig.AudioEncoding.LINEAR16,
         sample_rate_hertz=16000,
@@ -26,15 +30,24 @@ def transcribe_audio_stream(stream):
         diarization_speaker_count=2,
     )
 
-    requests = [
-        speech.StreamingRecognizeRequest(audio_content=chunk)
-        for chunk in stream
-    ]
+    # Create BufferStream instance
+    stream_buffer = BufferStream(5)
 
-    responses = client.streaming_recognize(config, requests)
-    # TODO Add processing logic
-    for response in responses:
-        # TODO Process responses
+    # Loop through audio stream
+    for chunk in stream:
+        # Add to stream buffer
+        stream_buffer.put(chunk)
+        
+        # Sending chunks to transcribe
+        if stream_buffer.full(): # Check if buffer reached the maximum size
+            audio_content = stream_buffer.get_nowait() # Get the first element added to queue
+            request = speech.StreamingRecognizeRequest(audio_content=audio_content) # Create the request
+            responses = client.streaming_recognize(config, [request]) # Make the request
+
+            # TODO Add processing logic for each response
+            for response in responses:
+                # TODO Process responses
+
 
 
 def convert_text_to_speech(text):
@@ -60,6 +73,10 @@ def convert_text_to_speech(text):
     print("Audio content written to file output.mp3")
 
 
+def storeConversationData(user_message, response):
+    # TODO implement this method
+
+
 app = Flask(__name__, static_folder='talkasaurus-react/build')
 socketio = SocketIO(app)
 
@@ -69,11 +86,14 @@ def index():
 
 @socketio.on('message')
 def handle_message(data):
-    # Send the message to OpenAI's GPT4 model and produce a response
-    response = generate_ai_response(data['message'])
-
+    user_message = data['message']
+    # Generate AI response
+    response = generate_ai_response(user_message)
+    # Store user message and AI response
+    storeConversationData(user_message, response)
     # Send the AI response back to the client
     socketio.emit('response', {'message': response})
+
 
 def generate_ai_response(user_message): 
     #TODO: error handling if there's an issue with the GPT API call
