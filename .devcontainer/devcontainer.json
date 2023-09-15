@@ -1,20 +1,42 @@
 {
-    "name": "My Project",
+    "name": "Python and Node.js",
     "build": {
-        "dockerfile": "Dockerfile",
-        "context": "..",
-        "args": {
-            // Update 'VARIANT' to pick a Python version: 3, 3.7, 3.8, 3.9
-            "VARIANT": "3.8",
-            "NODE_VERSION": "14"
+        "dockerfile": "Dockerfile"
+    },
+    "features": {
+        "ghcr.io/devcontainers/features/common-utils:2":{
+            "installZsh": "true",
+            "username": "vscode",
+            "userUid": "1000",
+            "userGid": "1000",
+            "upgradePackages": "true"
+        },
+        "ghcr.io/devcontainers/features/python:1": "none",
+        "ghcr.io/devcontainers/features/node:1": {"version": "none"},
+        "ghcr.io/devcontainers/features/git:1": {
+            "version": "latest",
+            "ppa": "false"
         }
     },
-
-    // Python version
-    "image": "python:3.8-slim-buster",
-
+    // Configure tool-specific properties.
+    "customizations": {
+        // Configure properties specific to VS Code.
+        "vscode": {
+            // Add the IDs of extensions you want installed when the container is created.
+            "extensions": [
+                "dbaeumer.vscode-eslint"
+            ],
+            // Set *default* container specific settings.json values on container create.
+            "settings": {
+                "python.defaultInterpreterPath": "/usr/local/bin/python"
+            }
+        }
+    },
     // Use 'forwardPorts' to make a list of any ports that you want to expose locally.
     "forwardPorts": [],
+
+    // Use 'postCreateCommand' to run commands after the container is created.
+    "postCreateCommand": "pip3 install --user -r requirements.txt",
 
     // adding some settings that will be beneficial for Python
     "settings": {
@@ -33,6 +55,6 @@
         "python.linting.pylintPath": "/usr/local/py-utils/bin/pylint"
     },
 
-    // use the Bash shell
-    "remoteUser": "root"
+    // Set `remoteUser` to `root` to connect as root instead. More info: https://aka.ms/vscode-remote/containers/non-root
+    "remoteUser": "vscode"
 }
