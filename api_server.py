@@ -1,8 +1,36 @@
 from flask import Flask, render_template, send_from_directory
 from flask_socketio import SocketIO
 import openai
+import os
 
-openai.api_key = 'my-api-key'
+openai.api_key = os.environ.get('OPENAI_API_KEY')
+
+from google.cloud import speech_v1p1beta1 as speech
+
+
+#This would require an audio stream chunked into parts to work most effectively, which would require changes based on the specific implementation of audio input.
+def transcribe_audio_stream(stream):
+    client = speech.SpeechClient()
+
+    config = speech.RecognitionConfig(
+        encoding=speech.RecognitionConfig.AudioEncoding.LINEAR16,
+        sample_rate_hertz=16000,
+        language_code="en-US",
+        enable_speaker_diarization=True,
+        diarization_speaker_count=2,
+    )
+
+    requests = [
+        speech.StreamingRecognizeRequest(audio_content=chunk)
+        for chunk in stream
+    ]
+
+    responses = client.streaming_recognize(config, requests)
+
+    for response in responses:
+    	pass
+        # Process responses
+
 
 app = Flask(__name__, static_folder='talkasaurus-react/build')
 socketio = SocketIO(app)
