@@ -1,3 +1,7 @@
+// TODO: This is a generic implementation.
+//       Decide whether there're any aspects that would need to be actively managed
+//       and if so, include those
+
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';

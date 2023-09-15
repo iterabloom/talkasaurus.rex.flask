@@ -1,4 +1,6 @@
-# TODO: possibly store responses from the API and user input, in a way that preserves user privacy. 
+# TODO: possibly store responses from the API and user input, in a way that preserves user privacy.
+#       anonymize user data before storing, either by generalizing the context or 
+#       hashing specifics relating to the user's identity.
 #       These data could be used to analyze and tune the user's conversational style over time. 
 #       it will be beneficial to implement Machine Learning models for user style adaptation. 
 #       This could start as another microservice that processes the data and learns from it.
@@ -74,7 +76,7 @@ def convert_text_to_speech(text):
 
 
 def storeConversationData(user_message, response):
-    # TODO implement this method
+    # TODO implement this method with consideration to user privacy
 
 
 app = Flask(__name__, static_folder='talkasaurus-react/build')
@@ -96,7 +98,9 @@ def handle_message(data):
 
 
 def generate_ai_response(user_message): 
-    #TODO: error handling if there's an issue with the GPT API call
+    #TODO: error handling if there's an issue with the GPT API call -
+    #      A retry mechanism or switching to backup language models
+
     # Add a dictionary for conversation history 
     conversation = {'messages': []}
     conversation['messages'].append({"role": "user", "content": user_message})

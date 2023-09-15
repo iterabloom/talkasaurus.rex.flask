@@ -27,6 +27,7 @@ const AudioRecorder = () => {
 
   const handleAudioError = (err) => {
     console.log(' onError: ', err)
+    //TODO: may need more handling logic here
   }
 
   return (
