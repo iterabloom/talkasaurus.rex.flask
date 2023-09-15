@@ -1,3 +1,7 @@
+# TODO: possibly store responses from the API and user input, in a way that preserves user privacy. 
+#       These data could be used to analyze and tune the user's conversational style over time. 
+#       it will be beneficial to implement Machine Learning models for user style adaptation. 
+#       This could start as another microservice that processes the data and learns from it.
 from flask import Flask, render_template, send_from_directory
 from flask_socketio import SocketIO
 import openai
@@ -9,8 +13,8 @@ openai.api_key = os.environ.get('OPENAI_API_KEY')
 from google.cloud import speech_v1p1beta1 as speech
 from google.cloud import texttospeech
 
-
-#This would require an audio stream chunked into parts to work most effectively, which would require changes based on the specific implementation of audio input.
+# TODO: This would require an audio stream chunked into parts to work most effectively, which would 
+#       require changes based on the specific implementation of audio input.
 def transcribe_audio_stream(stream):
     client = speech.SpeechClient()
 
@@ -73,12 +77,19 @@ def handle_message(data):
 
 def generate_ai_response(user_message): 
     #TODO: error handling if there's an issue with the GPT API call
-    response = openai.Completion.create(
-        engine="text-davinci-003", 
-        prompt=user_message, 
-        max_tokens=150
+    # Add a dictionary for conversation history 
+    conversation = {'messages': []}
+    conversation['messages'].append({"role": "user", "content": user_message})
+    
+    response = openai.ChatCompletion.create(
+      model="gpt-4.32k",
+      messages=conversation['messages'],
+      max_tokens=150
     )
-    return response['choices'][0]['text'].strip()
+    
+    # Update conversation history
+    conversation['messages'].append({"role": "assistant", "content": response['choices'][0]['message']['content']})
+    return response['choices'][0]['message']['content']
 
 
 if __name__ == '__main__':

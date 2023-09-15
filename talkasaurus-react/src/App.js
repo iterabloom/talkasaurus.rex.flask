@@ -47,6 +47,15 @@ function handleAudioFile(file) {
     audio.play();
 }
 function App() {
+  const handleAudioUpload = async (data) => {
+    try {
+      const formData = new FormData();
+      formData.append('file', data.blob);
+      const res = await axios.post('http://localhost:5000/audio_transcription', formData);
+    } catch (error) {
+      console.log('Error uploading file:', error);
+    }
+  }
   return (
     <div className="App">
       <header className="App-header">
