@@ -3,6 +3,7 @@ from flask_socketio import SocketIO
 import openai
 import os
 
+# TODO: Make sure this key is correctly set and safely stored
 openai.api_key = os.environ.get('OPENAI_API_KEY')
 
 from google.cloud import speech_v1p1beta1 as speech
@@ -27,10 +28,9 @@ def transcribe_audio_stream(stream):
     ]
 
     responses = client.streaming_recognize(config, requests)
-
+    # TODO Add processing logic
     for response in responses:
-    	pass
-        # Process responses
+        # TODO Process responses
 
 
 def convert_text_to_speech(text):
@@ -50,6 +50,7 @@ def convert_text_to_speech(text):
     )
 
     # Save the synthesized speech to a file
+    # TODO: create a unique name every time this method gets called or directly stream the audio to the frontend, eliminating the need to manage the audio files
     with open("output.mp3", "wb") as out:
         out.write(response.audio_content)
     print("Audio content written to file output.mp3")
@@ -71,6 +72,7 @@ def handle_message(data):
     socketio.emit('response', {'message': response})
 
 def generate_ai_response(user_message): 
+    #TODO: error handling if there's an issue with the GPT API call
     response = openai.Completion.create(
         engine="text-davinci-003", 
         prompt=user_message, 
