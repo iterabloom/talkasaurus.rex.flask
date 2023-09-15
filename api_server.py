@@ -1,11 +1,15 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, send_from_directory
 from flask_socketio import SocketIO
 import openai
 
 openai.api_key = 'my-api-key'
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='talkasaurus-react/build')
 socketio = SocketIO(app)
+
+@app.route('/')
+def index():
+    return send_from_directory(app.static_folder, 'index.html')
 
 @socketio.on('message')
 def handle_message(data):
