@@ -14,12 +14,6 @@ jobs:
       - name: Checkout Repo
         uses: actions/checkout@v2
 
-      - name: Extract PR Comments
-        # rest of the code remains unchanged...
-      
-      - name: Stop Pipeline If Review Is Required
-        # rest of the code remains unchanged...
-      
       - name: Set up Python 3.9
         uses: actions/setup-python@v2
         with:
