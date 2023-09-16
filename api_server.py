@@ -1,9 +1,8 @@
-from flask import Flask, render_template, send_from_directory
+from flask import Flask, send_from_directory
 from flask_socketio import SocketIO
 import openai
 import os
 
-# Pull the OpenAI API key from the environment variables
 openai.api_key = os.environ.get('OPENAI_API_KEY')
 
 from google.cloud import speech_v1p1beta1 as speech
@@ -11,25 +10,15 @@ from google.cloud import texttospeech
 from queue import Queue
 import base64
 
-# BufferStream to handle audio buffering
 class BufferStream(Queue):
-    def __init__(self, buffer_size):
-        # Initialise a Queue with a maximum buffer size
-        super().__init__(maxsize=buffer_size)
+    def __init__(self, buffer_max_size: int = 5):
+        super().__init__(maxsize=buffer_max_size)
 
-    # read the audio from the Queue 
     def read(self):
         return self.get()
 
-class BufferStream(Queue):
-    # initialize the queue with the intended size
-    def __init__(self, buffer_size):
-        super().__init__(maxsize=buffer_size)
-
-# Handle the transcription of the audio stream into text
 def transcribe_audio_stream(stream):
     client = speech.SpeechClient()
-
     config=speech.RecognitionConfig(
         encoding=speech.RecognitionConfig.AudioEncoding.LINEAR16,
         sample_rate_hertz=16000,
@@ -37,42 +26,29 @@ def transcribe_audio_stream(stream):
         enable_speaker_diarization=True,
         diarization_speaker_count=2
     )
-
-    stream_buffer = BufferStream(5)
+    stream_buffer = BufferStream()
 
     for chunk in stream:
         stream_buffer.put(chunk)
-        if stream_buffer.full(): 
-            # extract audio_content in chunks from buffer
+        if stream_buffer.full():
             audio_content = stream_buffer.get_nowait() 
             request = speech.StreamingRecognizeRequest(audio_content=audio_content)
-            
-            # communicate with the API and get the response
             responses = client.streaming_recognize(config, [request])
             for response in responses:
-                # print the transcriptions for further processing
                 print(response)
-
-# Produce speech audio from the text
+                
 def convert_text_to_speech(text: str):
     client = texttospeech.TextToSpeechClient()
     synthesis_input = texttospeech.SynthesisInput(text=text)
     voice = texttospeech.VoiceSelectionParams(language_code="en-US",
                                               ssml_gender=texttospeech.SsmlVoiceGender.NEUTRAL)
     audio_config = texttospeech.AudioConfig(audio_encoding=texttospeech.AudioEncoding.MP3)
-
     response = client.synthesize_speech(input=synthesis_input, voice=voice, audio_config=audio_config)
-
     audio_data = response.audio_content
-
-    # Emit the data directly to the frontend
     socketio.emit('response', {'audio_data': base64.b64encode(audio_data).decode()})
 
-# Save the conversation
-def storeConversationData(user_message, response):
-    # Print the user message and response for testing
-    print("User:", user_message)
-    print("Response:", response)
+def storeConversationData(conversations):
+    [print(f"User: {dialogue['User']}\nResponse: {dialogue['Response']}") for dialogue in conversations]
 
 def generate_ai_response(user_message: str) -> str:   
     conversation = {
@@ -92,15 +68,21 @@ def index():
 
 @socketio.on('message')
 def handle_message(data):
+    dialogsCollection = []
     user_message = data['message']
-    response = generate_ai_response(user_message)
+    try:
+        response = generate_ai_response(user_message)
+        convert_text_to_speech(response)
+        socketio.emit('response', {'response': response, 'message': user_message})
+        dialogsCollection.append({
+            "User": user_message,
+            "Response": response
+        })
+    except Exception as e:
+        # this could include logging to a file/logscollector
+        print(f"Error while generating AI response: {str(e)}")
 
-    # send back the responses and user message
-    convert_text_to_speech(response)
-    socketio.emit('response', {'response': response, 'message': user_message})
-
-    # save the conversation
-    storeConversationData(user_message, response)
+    storeConversationData(dialogsCollection)
 
 if __name__ == '__main__':
-    socketio.run(app, host='0.0.0.0', port=5000)
+    socketio.run(app, host='0.0.0.0"', port=int(os.getenv('PORT', 5000)))
