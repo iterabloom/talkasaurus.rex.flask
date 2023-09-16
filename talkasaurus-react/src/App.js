@@ -5,8 +5,26 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import Recorder from 'react-mp3-recorder'
 
+// Utility function
+function base64ToUint8Array(base64) {
+  const binary_string = atob(base64);
+  const len = binary_string.length;
+  const bytes = new Uint8Array(len);
+  for (let i = 0; i < len; i++) {
+      bytes[i] = binary_string.charCodeAt(i);
+  }
+  return bytes;
+}
+
+
 let socket = io("http://localhost:8080");    // connect this to the server
 socket.on("connect", () => {});
+
+socket.on('response', (data) => {
+  const audioBlob = new Blob([base64ToUint8Array(data.audio_data)], { type: 'audio/mpeg' });
+  const url = URL.createObjectURL(audioBlob);
+  audioRef.current.src = url;  // audioRef is a ref to an <audio> element
+});
 
 const AudioRecorder = () => {
   const [url, setUrl] = useState(null)
