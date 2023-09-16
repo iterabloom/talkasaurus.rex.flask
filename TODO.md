@@ -1,10 +1,11 @@
 # TODO for overall project
-- add config file(s) for GitHub Actions, the CI/CD pipeline management tool 
-- set up automated testing reports and build notifications
-- do the 'TODO' comments in the individual code files
-- follow standard best practices for Python and JavaScript, including readability, testability, efficiency, and simplicity, to make code more robust and maintainable
-- The server URL 'localhost:5000' hardcoded in the react app should be configurable and not hard-coded. 
-- ensure comprehensive documentation/markdown files in the repository to help future contributors understand the application and its architecture better, and make enhancements accordingly
-    - create separate markdown documents in the root directory of the application for larger tasks
-    - use inline comments for smaller bits of code
-- for optimization and better management, consider segregating different features or Tensor tasks into microservices or different modules
+- [ ] add config file for GitHub Actions, the CI/CD pipeline management tool 
+- [ ] With GitHub Actions, develop automated build notifications which will not only improve collaboration but will provide comprehensive insights of failed/successful builds
+- [ ] Setup environment variables for API calls within the React App to fetch/submit data
+- [ ] handle potential latencies and interruptions while making API calls, prefer axios over fetch API for this
+- [ ] Follow standard best practices for Python and JavaScript. This includes readability (self-explanatory variable and function names), testability (modular code allowing unit tests), efficiency (robust really to handle worst-case scenarios), and simplicity (resolve the problem in the most understandble manner without complicating its advantages). This will make our code more robust and maintainable
+- [ ] The React frontend codebase currently has the server's local host URL hardcoded directly, it should be adaptable to changes
+- [ ] ensure comprehensive documentation/markdown files in the repository to help future contributors understand the application and its architecture better, and make enhancements accordingly
+- [ ] Create markdown document for each large task under the `markdown_documents` directory
+- [ ] Make efficient use of inline comments in the code-base to understand code functionality at micro level
+- [ ] Microservices or different modules altogether might become necessary as the application complexity increases 
