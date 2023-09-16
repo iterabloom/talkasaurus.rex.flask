@@ -4,6 +4,7 @@ import io from "socket.io-client";
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import AudioRecorder from 'react-audio-recorder';
+import { SocketProvider } from './SocketContextPanel'; // import the SocketProvider
 
 const socket = io(process.env.REACT_APP_SERVER_URL);
 socket.on("connect", () => {});
@@ -37,7 +38,12 @@ const App = () => {
     }
   }
 
-  return <AudioRecorder sendFile={sendAudioFile} />;
+  // Wrap the AudioRecorder component with the SocketProvider
+  return (
+    <SocketProvider>
+      <AudioRecorder sendFile={sendAudioFile} />
+    </SocketProvider>
+  );
 }
 
 export default App;
