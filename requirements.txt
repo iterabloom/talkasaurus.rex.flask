@@ -6,3 +6,5 @@ scipy
 pyaudio
 librosa
 numpy
+pylint
+eslint

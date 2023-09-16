@@ -3,6 +3,7 @@ from flask_socketio import SocketIO
 import openai
 import os
 
+# OpenAI api key
 openai.api_key = os.environ.get('OPENAI_API_KEY')
 
 from google.cloud import speech_v1p1beta1 as speech
@@ -52,7 +53,12 @@ def storeConversationData(conversations):
     [print(f"User: {dialogue['User']}\nResponse: {dialogue['Response']}") for dialogue in conversations]
 
 def generate_ai_response(user_message: str) -> str:   
-    """Chat with OpenAI's GPT4-32k."""
+    """ 
+    Chat with OpenAI's GPT4-32k. 
+    The conversation state is managed internally with the help of message history. 
+    Each message object in the messages array has three properties: role, content, and filename.
+    Increasing the max tokens increases response length up to a limit.
+    """
     conversation = {
         'messages': [{"role": "user", "content": f"{user_message}"}]
     }
@@ -100,6 +106,7 @@ def handle_message(data):
         # this could include logging to a file/logscollector
         print(f"Error while generating AI response: {str(e)}")
 
+    # Store all the conversation data - could later be redirected to a DB
     storeConversationData(dialogsCollection)
 
 if __name__ == '__main__':

@@ -1,16 +1,15 @@
-import React from "react";
+import React, { useState, createContext, useContext, useEffect } from "react";
 import io from "socket.io-client";
 
-const SocketContext = React.createContext();
+export const SocketContext = createContext();
 
 export const SocketProvider = ({ children }) => {
-  const socketURL = process.env.REACT_APP_SERVER_URL;
-
-  const [socket, setSocket] = useState()
+  const [socket, setSocket] = useState();
+  const socketUrl = process.env.REACT_APP_SERVER_URL || "http://localhost:5000";
 
   useEffect(() => {
-    setSocket(io(socketURL));
-  }, [socketURL])
+    setSocket(io(socketUrl));
+  }, [socketUrl]);
 
   return (
     <SocketContext.Provider value={socket}>
@@ -19,4 +18,4 @@ export const SocketProvider = ({ children }) => {
   );
 };
 
-export const useSocket = () => React.useContext(SocketContext);
+export const useSocket = () => useContext(SocketContext);
