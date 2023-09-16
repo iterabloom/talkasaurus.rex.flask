@@ -5,13 +5,12 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import AudioRecorder from 'react-audio-recorder';
 
-const socket = io("http://localhost:5000/");
+const socket = io(process.env.REACT_APP_SERVER_URL);
 socket.on("connect", () => {});
 socket.on('voice', (data) => {
   const audioBlob = new Blob([base64ToUint8Array(data.audio_data)], { type: 'audio/mpeg' });
   const url = URL.createObjectURL(audioBlob);
-
-  // play the response
+  
   const audio = new Audio(url);
   audio.play();
 });
@@ -32,7 +31,7 @@ const App = () => {
     const formData = new FormData();
     formData.append('file', data.blob, 'audio.wav');
     try {
-      await axios.post('http://localhost:5000/audio_transcription', formData);
+      await axios.post(`${process.env.REACT_APP_SERVER_URL}/audio_transcription`, formData);
     } catch (error) {
       console.error('Error uploading file:', error);
     }
