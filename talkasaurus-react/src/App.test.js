@@ -1,10 +1,16 @@
-import { render, screen } from '@testing-library/react';
+import React from 'react';
+import { render, fireEvent } from '@testing-library/react';
 import App from './App';
 
-test('renders audio recorder', () => {
-  render(<App />);
-  const linkElement = screen.getByText(/Start Recording/i); // assuming there's a "Start Recording" button
-  expect(linkElement).toBeInTheDocument();
+test('Renders start button', () => {
+  const { getByTestId } = render(<App />);
+  const startButton = getByTestId('startButton');
+  expect(startButton).toBeInTheDocument();
 });
 
-// TODO: Implement more specific tests
+test('Start recording when button is clicked', () => {
+  const { getByTestId } = render(<App />);
+  const startButton = getByTestId('startButton');
+  fireEvent.click(startButton);
+  expect(startButton.textContent).toBe("Stop Recording");
+});
