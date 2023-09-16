@@ -1,32 +1,43 @@
 # Large Tasks and their Implementations
 
-Outlined here are key development phases of the TalkasaurusRex project that will ensure an innovative, conversational, and efficient system.
+### Task #1: Excelling in Natural Conversation Flow
+Our primary goal is an immersive natural conversation experience with users, including humans' spontaneity and fluidity.
 
-## Excelling in Natural Conversation Flow
+Sub Tasks:
+-    T1.a: Handling Interruptions and Interjections ([Issue Link 1a])
+-    T1.b: Introducing Parallel Communication Threads ([Issue Link 1b])
 
-TalkasaurusRex aims to provide an experience of real life, natural conversations to its users. It imagines and realizes the perfect conversation that is natural, flowing, and meaningful. We aim to achieve:
+Details: Simply put, interruptions and interjections are an integral part of human conversation. Manage these while maintaining the context to significantly enhance the conversation flow. 
 
-1. **Handling Interruptions and Interjections**: Interruptions and interjections are integral to natural human conversations. By identifying and appropriately handling these can improve conversation flow drastically.
+Outcome: The app can handle interruptions and interjections to provide a smooth conversation experience.
 
-2. **Parallel Communication Threads**: Real-time chat often involves multiple simultaneous lines of thought. To manage this, we'll need to introduce a sophisticated mechanism that handles concurrent communication threads without losing conversational context.
 
-## Implementing Hierarchical State Machines or Petri Nets
+### Task #2: Implementing Hierarchical State Machines or Petri Nets
+We aim at extended state management to handle various flows in dialogue using Hierarchical State Machines (HSM) or Petri Nets.
 
-To handle conversation flow, we can implement Hierarchical State Machines (HSM) or Petri Nets. Their advanced state management can help us:
+Sub Tasks:
+-    T2.a: Better Understand User's Input ([Issue Link 2a])
+-    T2.b: Design Responses ([Issue Link 2b])
+-    T2.c: Retain Context ([Issue Link 2c])
 
-- **Better Understanding of User's Input**: Tune into user's tone, context, and content for an eloquent and relevant response.
-- **Generating Coherent Responses**: Answer in a way that aligns with the tone and format of preceding conversation.
-- **Keep Proceeding Conversation in Context**: Mold responses based on the history of the conversation.
+Details: To understand the user's input and context better, we will trend the AI response to be more suitable and synchronous with the conversation's previous flow and tone. 
 
-## DevOpsBot
+Outcome: Better and contextually apt AI response system.
 
-The DevOpsBot's role transcends traditional operational facilitation. Reinforcing the essence of DevOps, the bot contributes to strategic decisions, becoming part of the core development:
 
-- **Idea Generator**: Using GPT-4 abilities, DevOpsBot will autonomously and regularly propose innovative improvements and features to expand TalkasaurusRex's capacities.
-- **Autonomous Code Debugging & Writing**: Not only does it help identify bugs, but the DevOpsBot goes further by autonomously writing, debugging, and rewriting code. This significantly accelerates debugging and development phases.
-- **Plan and Design Workflows**: For every proposed new feature or innovation, DevOpsBot will automatically generate a complete, ready-to-implement project plan and workflow design.
-- **Writing Test Cases**: To ensure software robustness and reliability, DevOpsBot will draft test cases for every new or refactored old feature.
-- **Software Telemetry Data Analysis**: With AI-powered analysis capabilities, DevOpsBot will scrutinize software telemetry data to identify potential areas of improvement and enhancement, supporting data-driven development.
-- **Enabling Human-in-the-loop**: Despite her autonomous capabilities, DevOpsBot acknowledges the indispensability of human collaboration. When complex operational or developmental circumstances arise, a robust back-up plan will ensure swift and seamless human intervention.
+### Task #3: Advancement and Autonomy of DevOpsBot
+To make TalkasaurusRex more autonomous and adaptive, we are developing a DevOpsBot that will propose and implement enhancements in speed, efficiency, and capabilities of TalkasaurusRex.
 
-The approach reflects a ground-breaking application of DevOps principles, pushing new boundaries of autonomous operations, and setting benchmarks for self-operating software. The aim is to realize a version of TalkasaurusRex that excels in interactivity but also, with the support of DevOpsBot, steers its own journey.
+Sub Tasks:
+-    T3.a: Idea Machine ([Issue Link 3a])
+-    T3.b: Autonomous Code Debugging & Writing ([Issue Link 3b])
+-    T3.c: Planning and Designing Workflows ([Issue Link 3c])
+-    T3.d: Writing Test Cases ([Issue Link 3d])
+-    T3.e: Software Telemetry Data Analysis ([Issue Link 3e])
+-    T3.f: Enabling Human-in-the-Loop ([Issue Link 3f])
+
+Details: The proposed DevOpsBot should be able to test, debug and rewrite code with no external assistance. It will significantly shorten the time needed to manage the issues and new enhancements to be made.
+
+Outcome: An efficient and autonomous DevOpsBot that manages continuous improvements for TalkasaurusRex.
+
+TODO: for every subtask, an issue link should be provided that details the problem, steps, period, and requirements to chalk out the solution to the task.

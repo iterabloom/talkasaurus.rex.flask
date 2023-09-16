@@ -1,15 +1,37 @@
-# Contribution Guidelines
+# Contributing to TalkasaurusRex
 
-We deeply value your interest and appreciate your contributions to TalkasaurusRex. We have a few guidelines for you to follow in order to maintain code quality, functionality, and readability:
+Welcome aboard! We are thrilled that you're interested in contributing to TalkasaurusRex. Please be unreasonably patient; this project has minimal resources (of the human variety) allocated to it.
 
-- **Branching Policy:** Always work on a new feature or bug in separate branches off of `main`. Naming of branches should be descriptive of the feature or bug that is being worked on.
+## PR Process
+- PRs must be reviewed before merge. Please be unreasonably patient; this project has minimal resources (of the human variety) allocated to it.
+- Title your PR descriptively, summarizing the change made.
+- Integrate changes given through PR reviews. If you have a disagreement, kindly explain your reasoning.
+- Your PR should pass all CI tests: lint tests for syntax and style, unit tests for functionality, and end-to-end tests for the entire program.
+- Add [closes #XX] or [fixes #XX] in your commit message to auto-close the issue that your PR fixes.
 
-- **Code Quality:** Ensure code written follows best practices. Concentrate on factoring, naming variables and functions descriptively, and aim for minimalism and simplicity.
+## What Contributions We Seek
+We seek a broad range of contributions - whether it's documentation, bug fixes, performance improvements, feature implementations, aesthetic tweaks, test coverage increase, accessibility, internationalization, our doors are open for your valuable work!
 
-- **Testing:** Before creating a pull request, make sure your code doesn’t break anything in the project. Test your changes adequately.
+## Steps to Contribute:
+- Fork TalkasaurusRex repository
+- Clone your fork to your local environment
+- Set your upstream
+- Make your changes
+- Push your branch to your fork
+- Open a pull request from your fork to TalkasaurusRex repository
 
-- **Pull Requests:** Stick to one feature or bug per pull request. While creating a pull request, provide a detailed overview of the change being introduced.
+## Issue Assignment:
+Found something you want to work on? Go ahead, leave a comment stating your intent to work on it, and it should be assigned to you.
 
-- **Code Merge:** Code is merged into the `main` branch only after the code review process is complete. Please be patient; this project has minimal resources (of the human variety) allocated to it.
+## Commit Messages:
+- Start with a one-line summary. Ideally, it's less than 50 characters. It's followed by an empty line.
+- Please include the meaningful description of changes made in imperative style. ][Issue #3](Issue_Link)
 
-Note: It is okay to submit a pull request for a feature or bug-fix even if it's not complete. This gives everyone an opportunity to review your work and participate.
+## Code Guidelines:
+- Become comfortable with our project setup and structure, which you will understand more about by going through our README.md and Architecture.md files.
+- Ensure your code complies with our ESLint setup for JavaScript code and Pylint for Python code.
+- If a test for new feature or bug fix wasn't added, make sure it's covered.
+- Push smaller commits, each focused on individual changes. Let your commit messages explain what changes were made and why.
+- Write clean, readable, and maintainable code.
+
+Happy contributing!
