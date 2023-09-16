@@ -11,28 +11,55 @@ jobs:
   build_and_test:
     runs-on: ubuntu-latest
     steps:
+
+      - name: Checkout Repo
+        uses: actions/checkout@v2
+        
+      - name: Extract PR comments
+        uses: octokit/graphql-action@v3.x
+        id: comment
+        with:
+          query: |
+            query ($owner: String!, $repo: String!, $number: Int!) {
+              repository(owner:$owner, name:$repo) {
+                pullRequest(number:$number) {
+                  comments(last:100) {
+                    nodes {
+                      body
+                    }
+                  }
+                }
+              }
+            }
+          owner: github.repository_owner
+          repo: github.event.repository.name
+          number: github.event.pull_request.number
+        
       - name: Stop Pipeline If Review Is Required
         run: |
           if [[ "${{ steps.comment.outputs.body }}" == *"[manual_review]"* ]]; then
             echo "Manual review is required. Stopping pipeline...";
             exit 1;
           fi
+          
       - name: Set up Python 3.9
         uses: actions/setup-python@v2
         with:
           python-version: 3.9
-      - name: Checkout Repo
-        uses: actions/checkout@v2
+
       - name: Install Dependencies
         run: pip install -r requirements.txt
+        
       - name: Install Package Manager
         run: cd talkasaurus-react && npm install
+        
       - name: run client tests
         run: cd talkasaurus-react && npm test
       - name: Run server tests
         run: python -m unittest discover tests
+        
       - name: Build Docker Image
         run: docker build . --file Dockerfile --tag talkasaurusrex:latest
-      # TODO: define/implement the method of deployment. For now let's do a simple script to ssh into the production server and pull the latest code
+
       - name: Deploy to Production
         run: echo "Deploy step goes here"

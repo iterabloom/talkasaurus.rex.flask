@@ -50,7 +50,8 @@ def transcribe_audio_stream(stream):
             # communicate with the API and get the response
             responses = client.streaming_recognize(config, [request])
             for response in responses:
-                # TODO: implement the operation
+                # print the transcriptions for further processing
+                print(response)
 
 # Produce speech audio from the text
 def convert_text_to_speech(text: str):
@@ -69,7 +70,9 @@ def convert_text_to_speech(text: str):
 
 # Save the conversation
 def storeConversationData(user_message, response):
-    # TODO: implement the functionality
+    # Print the user message and response for testing
+    print("User:", user_message)
+    print("Response:", response)
 
 def generate_ai_response(user_message: str) -> str:   
     conversation = {
