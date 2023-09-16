@@ -52,7 +52,7 @@ def storeConversationData(conversations):
     [print(f"User: {dialogue['User']}\nResponse: {dialogue['Response']}") for dialogue in conversations]
 
 def generate_ai_response(user_message: str) -> str:   
-    """Chat with OpenAI's GPT3."""
+    """Chat with OpenAI's GPT4-32k."""
     conversation = {
         'messages': [{"role": "user", "content": f"{user_message}"}]
     }

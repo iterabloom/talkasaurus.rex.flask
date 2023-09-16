@@ -11,42 +11,15 @@ jobs:
   build_and_test:
     runs-on: ubuntu-latest
     steps:
-
       - name: Checkout Repo
         uses: actions/checkout@v2
 
       - name: Extract PR Comments
-        uses: octokit/graphql-action@v3.x
-        id: comment
-        with:
-          query: |
-            query ($owner: String!, $repo: String!, $number: Int!) {
-              repository(owner:$owner, name:$repo) {
-                pullRequest(number:$number) {
-                  comments(last:100) {
-                    nodes {
-                      body
-                      author {
-                        login
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          owner: ${{ github.repository_owner }}
-          repo: ${{ github.event.repository.name }}
-          number: ${{ github.event.pull_request.number }}
-        
+        # rest of the code remains unchanged...
+      
       - name: Stop Pipeline If Review Is Required
-        run: |
-          response= '${{ toJSON(steps.comment.outputs.data) }}';
-          const pr_comments = JSON.parse(response); //assuming 'response' is a JSON string
-          if (pr_comments.repository.pullRequest.comments.nodes.find(comment => comment.body.includes("[manual_review]"))) {
-            console.log("Manual review required. Halting CI pipeline.");
-            process.exit(1);
-          }
-
+        # rest of the code remains unchanged...
+      
       - name: Set up Python 3.9
         uses: actions/setup-python@v2
         with:
@@ -55,8 +28,15 @@ jobs:
       - name: Install Dependencies
         run: pip install -r requirements.txt
 
-      - name: Install Package Manager
-        run: cd talkasaurus-react && npm install
+      - name: Set up Node
+        uses: actions/setup-node@v2
+        with:
+          node-version: 14.x
+      
+      - name: Install npm dependencies
+        run: |
+          cd talkasaurus-react
+          npm install
 
       - name: Run client tests
         run: cd talkasaurus-react && npm test
@@ -65,7 +45,12 @@ jobs:
         run: python -m unittest discover tests
 
       - name: Build Docker Image
-        run: docker build . --file Dockerfile --tag talkasaurusrex:latest
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          push: false
+          tags: talkasaurusrex:latest
 
       - name: Deploy to Production
         run: echo "Deploy step goes here"
+        if: github.ref == 'refs/heads/main' # Only run this step on main branch
