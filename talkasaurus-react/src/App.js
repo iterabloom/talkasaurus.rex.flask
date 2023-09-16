@@ -6,7 +6,7 @@ import axios from 'axios';
 import AudioRecorder from 'react-audio-recorder';
 import { SocketProvider } from './SocketContextPanel'; // import the SocketProvider
 
-const socket = io(process.env.REACT_APP_SERVER_URL);
+const socket = io(process.env.REACT_APP_SERVER_URL || 'http://localhost:5000');
 socket.on("connect", () => {});
 socket.on('voice', (data) => {
   const audioBlob = new Blob([base64ToUint8Array(data.audio_data)], { type: 'audio/mpeg' });

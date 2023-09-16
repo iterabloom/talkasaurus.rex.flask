@@ -1,11 +1,13 @@
 # TODO for overall project
-- [ ] add config file for GitHub Actions, the CI/CD pipeline management tool 
-- [ ] With GitHub Actions, develop automated build notifications which will not only improve collaboration but will provide comprehensive insights of failed/successful builds
-- [ ] Setup environment variables for API calls within the React App to fetch/submit data
-- [ ] handle potential latencies and interruptions while making API calls, prefer axios over fetch API for this
-- [ ] Follow standard best practices for Python and JavaScript. This includes readability (self-explanatory variable and function names), testability (modular code allowing unit tests), efficiency (robust really to handle worst-case scenarios), and simplicity (resolve the problem in the most understandble manner without complicating its advantages). This will make our code more robust and maintainable
-- [ ] The React frontend codebase currently has the server's local host URL hardcoded directly, it should be adaptable to changes
-- [ ] ensure comprehensive documentation/markdown files in the repository to help future contributors understand the application and its architecture better, and make enhancements accordingly
+- [x] Add config file for GitHub Actions, the CI/CD pipeline management tool 
+- [x] With GitHub Actions, develop automated build notifications which will not only improve collaboration but will provide comprehensive insights of failed/successful builds
+- [x] Setup environment variables for API calls within the React App to fetch/submit data
+- [x] Handle potential latencies and interruptions while making API calls, prefer axios over fetch API for this
+- [x] Follow standard best practices for Python and JavaScript. This includes readability (self-explanatory variable and function names), testability (modular code allowing unit tests), efficiency (robust ready to handle worst-case scenarios), and simplicity (resolve the problem in the most understandable manner without complicating its advantages). This will make our code more robust and maintainable
+- [x] The React frontend codebase currently has the server's local host URL hardcoded directly, it should be adaptable to changes
+- [ ] Ensure comprehensive documentation/markdown files in the repository to help future contributors understand the application and its architecture better, and make enhancements accordingly
 - [ ] Create markdown document for each large task under the `markdown_documents` directory
 - [ ] Make efficient use of inline comments in the code-base to understand code functionality at micro level
 - [ ] Microservices or different modules altogether might become necessary as the application complexity increases 
+- [ ] Add Pylint for Python static code analysis and configure as per our coding standards
+- [ ] Add ESLint for JavaScript static code analysis and configure as per our coding standards
