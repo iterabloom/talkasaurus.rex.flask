@@ -1,2 +1,2 @@
-# TODO: figure out what language to use for this script
+# TODO: figure out what language to use for this script - it is only named testing_script_1.script because I don't know what the filetype should be. there is probably a file suffix named ".script" but if so it is just a coincidence.
 #       write script to facilitate automated testing reports, which can send build notifications
