@@ -33,6 +33,6 @@ jobs:
         run: python -m unittest discover tests
       - name: Build Docker Image
         run: docker build . --file Dockerfile --tag talkasaurusrex:latest
-      # TODO: define the method of deployment
+      # TODO: define/implement the method of deployment. For now let's do a simple script to ssh into the production server and pull the latest code
       - name: Deploy to Production
         run: echo "Deploy step goes here"
