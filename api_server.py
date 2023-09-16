@@ -11,55 +11,77 @@ from google.cloud import texttospeech
 from queue import Queue
 import base64
 
-# [Transition] Transcribe the audio stream into text
+# BufferStream to handle audio buffering
+class BufferStream(Queue):
+    def __init__(self, buffer_size):
+        # Initialise a Queue with a maximum buffer size
+        super().__init__(maxsize=buffer_size)
+
+    # read the audio from the Queue 
+    def read(self):
+        return self.get()
+
+class BufferStream(Queue):
+    # initialize the queue with the intended size
+    def __init__(self, buffer_size):
+        super().__init__(maxsize=buffer_size)
+
+# Handle the transcription of the audio stream into text
 def transcribe_audio_stream(stream):
     client = speech.SpeechClient()
 
-    # [New] Recognize multiple languages and dialects, and don't ignore non-word sounds
-    config=speech.RecognitionConfig(encoding=speech.RecognitionConfig.AudioEncoding.LINEAR16,sample_rate_hertz=16000,language_code="en-US",enable_speaker_diarization=True,diarization_speaker_count=2)
+    config=speech.RecognitionConfig(
+        encoding=speech.RecognitionConfig.AudioEncoding.LINEAR16,
+        sample_rate_hertz=16000,
+        language_code="en-US",
+        enable_speaker_diarization=True,
+        diarization_speaker_count=2
+    )
+
     stream_buffer = BufferStream(5)
 
     for chunk in stream:
         stream_buffer.put(chunk)
-        
         if stream_buffer.full(): 
+            # extract audio_content in chunks from buffer
             audio_content = stream_buffer.get_nowait() 
-            request = speech.StreamingRecognizeRequest(audio_content=audio_content) 
-            responses = client.streaming_recognize(config, [request]) 
-
+            request = speech.StreamingRecognizeRequest(audio_content=audio_content)
+            
+            # communicate with the API and get the response
+            responses = client.streaming_recognize(config, [request])
             for response in responses:
-                pass # replace with the real operation 
+                # TODO: implement the operation
 
-# [Transition] Produce speech audio from the text
-# TODO clarify in comments how this function gets invoked (or if invocation is missing, create it)
+# Produce speech audio from the text
 def convert_text_to_speech(text: str):
     client = texttospeech.TextToSpeechClient()
     synthesis_input = texttospeech.SynthesisInput(text=text)
-    voice = texttospeech.VoiceSelectionParams(language_code="en-US", ssml_gender=texttospeech.SsmlVoiceGender.NEUTRAL)
+    voice = texttospeech.VoiceSelectionParams(language_code="en-US",
+                                              ssml_gender=texttospeech.SsmlVoiceGender.NEUTRAL)
     audio_config = texttospeech.AudioConfig(audio_encoding=texttospeech.AudioEncoding.MP3)
 
     response = client.synthesize_speech(input=synthesis_input, voice=voice, audio_config=audio_config)
 
-    # Instead of writing to a file, emit the data directly to the frontend
     audio_data = response.audio_content
+
+    # Emit the data directly to the frontend
     socketio.emit('response', {'audio_data': base64.b64encode(audio_data).decode()})
 
-
+# Save the conversation
 def storeConversationData(user_message, response):
-    pass # ToDo: implement functionality
+    # TODO: implement the functionality
 
-def generate_ai_response(user_message: str) -> str: 
+def generate_ai_response(user_message: str) -> str:   
     conversation = {
-        'messages': [
-            {"role": "user", "content": user_message}
-        ]
+        'messages': [{"role": "user", "content": f"{user_message}"}]
     }
-   
-    response = openai.ChatCompletion.create(model="gpt-4", messages=conversation['messages'], max_tokens=150)
+
+    response = openai.ChatCompletion.create(model="gpt-4", messages=conversation['messages'],
+                                            max_tokens=150)
     return response['choices'][0]['message']['content']
 
 app = Flask(__name__, static_folder='talkasaurus-react/build')
-socketio = SocketIO(app)
+socketio = SocketIO(app, cors_allowed_origins="*")
 
 @app.route('/')
 def index():
@@ -70,11 +92,12 @@ def handle_message(data):
     user_message = data['message']
     response = generate_ai_response(user_message)
 
-    # [New] Send back the response and user message to the client
+    # send back the responses and user message
+    convert_text_to_speech(response)
     socketio.emit('response', {'response': response, 'message': user_message})
 
-    # [Transition] Store the conversation
+    # save the conversation
     storeConversationData(user_message, response)
 
 if __name__ == '__main__':
-    socketio.run(app)
+    socketio.run(app, host='0.0.0.0', port=5000)
