@@ -45,6 +45,9 @@ jobs:
           push: false
           tags: talkasaurusrex:latest
 
+      - name: Send Build Notification
+        run: echo "Send build notification step goes here"
+
       - name: Deploy to Production
         run: echo "Deploy step goes here"
         if: github.ref == 'refs/heads/main' # Only run this step on main branch
