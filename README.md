@@ -1,6 +1,6 @@
 # talkasaurus.rex.flask
 
-![a cartoon tyrannosaurus rex talks on an oversized 1980s-style telephone while stirring a cup of tea with a large aquamarine-colored spoon](talkasaurus-rex.png?raw=true "TalkasaurusRex"). 
+![a cartoon tyrannosaurus rex talks on an oversized 1980s-style telephone while stirring a cup of tea with a large aquamarine-colored spoon](talkosaurus-rex.png?raw=true "TalkasaurusRex").  
 
 TalkasaurusRex leverages speech-to-text, text-to-speech, and GPT4-32k to have natural conversations with users. The conversation experience is a prime focus, requiring it to be as close to conversing with another human as possible.
 
