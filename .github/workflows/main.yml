@@ -14,8 +14,8 @@ jobs:
 
       - name: Checkout Repo
         uses: actions/checkout@v2
-        
-      - name: Extract PR comments
+
+      - name: Extract PR Comments
         uses: octokit/graphql-action@v3.x
         id: comment
         with:
@@ -26,22 +26,27 @@ jobs:
                   comments(last:100) {
                     nodes {
                       body
+                      author {
+                        login
+                      }
                     }
                   }
                 }
               }
             }
-          owner: github.repository_owner
-          repo: github.event.repository.name
-          number: github.event.pull_request.number
+          owner: ${{ github.repository_owner }}
+          repo: ${{ github.event.repository.name }}
+          number: ${{ github.event.pull_request.number }}
         
       - name: Stop Pipeline If Review Is Required
         run: |
-          if [[ "${{ steps.comment.outputs.body }}" == *"[manual_review]"* ]]; then
-            echo "Manual review is required. Stopping pipeline...";
-            exit 1;
-          fi
-          
+          response= '${{ toJSON(steps.comment.outputs.data) }}';
+          const pr_comments = JSON.parse(response); //assuming 'response' is a JSON string
+          if (pr_comments.repository.pullRequest.comments.nodes.find(comment => comment.body.includes("[manual_review]"))) {
+            console.log("Manual review required. Halting CI pipeline.");
+            process.exit(1);
+          }
+
       - name: Set up Python 3.9
         uses: actions/setup-python@v2
         with:
@@ -49,15 +54,16 @@ jobs:
 
       - name: Install Dependencies
         run: pip install -r requirements.txt
-        
+
       - name: Install Package Manager
         run: cd talkasaurus-react && npm install
-        
-      - name: run client tests
+
+      - name: Run client tests
         run: cd talkasaurus-react && npm test
+
       - name: Run server tests
         run: python -m unittest discover tests
-        
+
       - name: Build Docker Image
         run: docker build . --file Dockerfile --tag talkasaurusrex:latest
 
