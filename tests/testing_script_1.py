@@ -4,6 +4,7 @@ from flask import Flask
 from unittest.mock import Mock
 import api_server
 
+# TODO: expand to cover more edge cases and functionalities
 class TestApp(unittest.TestCase):
     def setUp(self):
         self.app = Flask(__name__)

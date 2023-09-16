@@ -1,3 +1,7 @@
+# TODO: add informative error logging to help with debugging and potential unexpected behavior. 
+#       This can be done by adding logs in the exception's catch block,
+#       and add more specific Exception subtypes to produce relevant and useful error messages
+
 from flask import Flask, send_from_directory
 from flask_socketio import SocketIO
 import openai
