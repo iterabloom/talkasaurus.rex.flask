@@ -1,3 +1,5 @@
+//TODO: Needs comments on what a Context here is. 
+//Code includes simple hooks setting, getting, updating socket as this is a real-time application where we need bi-directional communication.
 import React, { useState, createContext, useContext, useEffect } from "react";
 import io from "socket.io-client";
 

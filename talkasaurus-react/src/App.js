@@ -1,3 +1,4 @@
+//TODO: add better comments in this file
 import logo from './logo.svg';
 import './App.css';
 import axios from 'axios';

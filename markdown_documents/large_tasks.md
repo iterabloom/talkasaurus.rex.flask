@@ -11,6 +11,9 @@ This file discusses the large tasks outlined in the README, such as:
 - plans to handle interruptions (when people talk over each other or cut each other off mid-sentence)
 [//]: # (TODO: add detail and improve)
 
+- Microservices or different modules: would likely be necessary in the future
+[//]: # (TODO: add detail and improve)
+
 - detail DevOpsBot, which should make bold plans for the development trajectory, while preserving human checkpoints, adjustments, suggestions, and changes
 [//]: # (TODO: add detail and improve)
 
