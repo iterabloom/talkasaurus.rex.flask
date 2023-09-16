@@ -1,0 +1,22 @@
+#This file will trigger when a push or pull request is made to the GitHub repository. 
+#It sets up Python, installs necessary dependencies from `requirements.txt`, 
+#and runs Python's built-in unittest framework to perform testing.
+name: Automated Testing
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python 3.9
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.9
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+    - name: Run tests
+      run: python -m unittest
