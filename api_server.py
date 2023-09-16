@@ -67,7 +67,7 @@ def generate_ai_response(user_message: str) -> str:
 
     while attempts < 5:
         try:
-            response = openai.ChatCompletion.create(model="gpt-3.5-turbo", messages=conversation['messages'], max_tokens=150)
+            response = openai.ChatCompletion.create(model="gpt-4-32k", messages=conversation['messages'], max_tokens=150) 
             # If the API call was successful then break out of the loop
             break
         except Exception as e:

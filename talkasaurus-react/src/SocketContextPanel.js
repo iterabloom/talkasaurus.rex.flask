@@ -1,14 +1,15 @@
-//TODO: Needs comments on what a Context here is. 
-//Code includes simple hooks setting, getting, updating socket as this is a real-time application where we need bi-directional communication.
-import React, { useState, createContext, useContext, useEffect } from "react";
+import React, { createContext, useContext, useEffect, useState } from "react";
 import io from "socket.io-client";
 
+//Creating Socket context
 export const SocketContext = createContext();
 
+//This component provides the socket context to its children
 export const SocketProvider = ({ children }) => {
   const [socket, setSocket] = useState();
   const socketUrl = process.env.REACT_APP_SERVER_URL || "http://localhost:5000";
 
+  //Instantiation of socket object
   useEffect(() => {
     setSocket(io(socketUrl));
   }, [socketUrl]);
@@ -20,4 +21,5 @@ export const SocketProvider = ({ children }) => {
   );
 };
 
+//Hook for socket context
 export const useSocket = () => useContext(SocketContext);
