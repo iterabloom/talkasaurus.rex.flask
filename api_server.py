@@ -9,6 +9,7 @@ from google.cloud import speech_v1p1beta1 as speech
 from google.cloud import texttospeech
 from queue import Queue
 import base64
+import time
 
 class BufferStream(Queue):
     def __init__(self, buffer_max_size: int = 5):
@@ -51,13 +52,30 @@ def storeConversationData(conversations):
     [print(f"User: {dialogue['User']}\nResponse: {dialogue['Response']}") for dialogue in conversations]
 
 def generate_ai_response(user_message: str) -> str:   
+    """Chat with OpenAI's GPT3."""
     conversation = {
         'messages': [{"role": "user", "content": f"{user_message}"}]
     }
+    
+    attempts = 0
 
-    response = openai.ChatCompletion.create(model="gpt-4", messages=conversation['messages'],
-                                            max_tokens=150)
-    return response['choices'][0]['message']['content']
+    while attempts < 5:
+        try:
+            response = openai.ChatCompletion.create(model="gpt-3.5-turbo", messages=conversation['messages'], max_tokens=150)
+            # If the API call was successful then break out of the loop
+            break
+        except Exception as e:
+            print(e)
+            if attempts < 4:  # if fewer than 4 attempts have been made, retry
+                wait_time = (2 ** attempts) + (random.randint(0, 1000) / 1000)
+                print(f"Waiting for {wait_time} seconds.")
+                time.sleep(wait_time)
+                attempts += 1
+                continue
+            else:  # after 4 attempts, stop trying
+                print("Unable to connect to the API after several attempts.")
+                response = None
+    return response['choices'][0]['message']['content'] if response else None
 
 app = Flask(__name__, static_folder='talkasaurus-react/build')
 socketio = SocketIO(app, cors_allowed_origins="*")
