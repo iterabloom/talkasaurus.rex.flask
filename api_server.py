@@ -1,7 +1,4 @@
-# TODO: add informative error logging to help with debugging and potential unexpected behavior. 
-#       This can be done by adding logs in the exception's catch block,
-#       and add more specific Exception subtypes to produce relevant and useful error messages
-
+import logging
 from flask import Flask, send_from_directory
 from flask_socketio import SocketIO
 import openai
@@ -16,6 +13,9 @@ from queue import Queue
 import base64
 import time
 from conversational_ai_engine import ConversationHandler, UserAdaptability
+
+# Setting up logging
+logging.basicConfig(level=logging.DEBUG)
 
 # Instantiate chat manager and adaptability module
 chat_handler = ConversationHandler()
@@ -104,21 +104,32 @@ def index():
 
 @socketio.on('message')
 def handle_message(data):
+    # Log that we received a new message
+    logging.info("Received new user message.")
+ 
     dialogsCollection = []
     user_message = data['message']
+    
     try:
+        # Log when the AI has started processing a response
+        logging.info("Starting to process user message.")
+        
         response = generate_ai_response(user_message)
+        
+        # Log when the text to speech operation has started
+        logging.info("Starting Text-to-Speech operation.")
         convert_text_to_speech(response)
         socketio.emit('response', {'response': response, 'message': user_message})
+        
         dialogsCollection.append({
             "User": user_message,
             "Response": response
         })
+        
     except Exception as e:
-        # this could include logging to a file/logscollector
-        print(f"Error while generating AI response: {str(e)}")
+        logging.error(str(e), exc_info=True)
 
-    # Store all the conversation data - could later be redirected to a DB
+    logging.info("Finished processing current user message.")
     storeConversationData(dialogsCollection)
 
 if __name__ == '__main__':
