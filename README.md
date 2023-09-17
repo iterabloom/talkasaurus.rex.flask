@@ -20,12 +20,13 @@ TalkasaurusRex is designed for naturally flowing conversation - adapting to and 
 
 ## Getting Started
 1. Clone the repository.
-2. You will need Python 3.x and NodeJS installed on your machine.
-3. Install the Python requirements with `pip install -r requirements.txt`.
-4. Run `npm install` in the `talkasaurus-react/` directory.
-5. Start the backend server with `python api_server.py`. The server will start on localhost:5000.
-6. Start the frontend server by running `npm start` in the `talkasaurus-react/` directory. The server will start on localhost:3000.
-7. Access the conversational AI via http://localhost:3000 in your web browser.
+2. Launch the project in a devContainer (recommended for full backend setup), or continue with the following steps for local setup.
+3. You will need Python 3.x and NodeJS installed on your machine.
+4. Install the Python requirements with `pip install -r requirements.txt`.
+5. Run `npm install` in the `talkasaurus-react/` directory.
+6. Start the backend server with `python api_server.py`. The server will start on localhost:5000.
+7. Start the frontend server by running `npm start` in the `talkasaurus-react/` directory. The server will start on localhost:3000.
+8. Access the conversational AI via http://localhost:3000 in your web browser.
 
 ## Example Conversation
 A typical conversation looks something like this:

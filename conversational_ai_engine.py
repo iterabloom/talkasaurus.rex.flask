@@ -77,6 +77,11 @@ class ConversationHandler:
         {'trigger': 'resume', 'source': '*', 'dest': 'normal'},
     ]
 
+    def state_timer(self):
+        #TODO: setup a timer to transition back to 'normal' state after a set while.
+        #      This allows handling of unexpected lags or delays in user responses.
+        pass
+
     def __init__(self, buffer_size=10):
         self.message_history = []
         self.buffer_size = buffer_size
@@ -98,6 +103,12 @@ class ConversationHandler:
 
         self.message_history.append(message)
         return message
+
+    def generate_prompts(self, user_tone, conversation_state):
+        # Based on the user's tone and the current conversation state, generate a list of prompts
+        prompts = []
+        # TODO: Add logic for generating prompts
+        return prompts
 
     def _cleanup(self):
         self.conn.close()
@@ -312,8 +323,6 @@ def api_delay_error_handler(api_method, retries=5):
     return result
 
 # TODO: this is wrong I think
-# Ordinarily, these would be added to a config file
-# But as this is not available, I'll hard-code them here
 MY_API_KEY = "123xyz..."
 GPT_MODEL = "gpt-4-32k"
 
