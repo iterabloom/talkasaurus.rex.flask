@@ -1,6 +1,6 @@
 # talkasaurus.rex.flask
 
-![a cartoon tyrannosaurus rex talks on an oversized 1980s-style telephone while stirring a cup of tea with a large aquamarine-colored spoon](talkasaurus-rex.png?raw=true "TalkasaurusRex"). 
+![a cartoon tyrannosaurus rex talks on an oversized 1980s-style telephone while stirring a cup of tea with a large aquamarine-colored spoon](talkosaurus-rex.png?raw=true "TalkasaurusRex")  
 
 TalkasaurusRex is designed for naturally flowing conversation - adapting to and mirroring the user's communication style. It leverages Google's Speech-to-Text, Text-to-Speech APIs, alongside the GPT4-32k model, creating an interaction akin to conversing with another human.
 
