@@ -1,38 +1,99 @@
-#v1.0.0 Basic Conversation and User Adaptability Modules
-
 import openai
 import os
+import atexit
 import sqlite3
 from collections import Counter
-import atexit
-from textblob import TextBlob  # for rudimentary sentiment analysis and parts of speech tagging
+import random
+import time
+from textblob import TextBlob
 
-openai.api_key = os.environ.get("OPENAI_API_KEY")
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
-# a class to handle conversation sequencing, feedback, overlap, interruption 
+from threading import Thread
+import transitions
+from transitions.extensions.states import Timeout, Tags, add_state_features
+from transitions.extensions.diagrams import GraphMachine
+from itertools import cycle
+
+
+@add_state_features(Timeout, Tags)
+class CustomStateMachine(GraphMachine):
+    pass
+
+
+class UserConvoFlags:
+    # Enumeral class to get flag against the detected user's conversation events
+    NO_EVENT = 0
+    INTERRUPTION = 1
+    INTERJECTION = 2
+    TIME_GAP = 3
+    HISTORY_RECALL = 4
+    #...
+
+
+class ConversationEvents:
+    # Class object to encapsulate the occurrence of the events in the conversation
+    def __init__(self):
+        self.event = UserConvoFlags.NO_EVENT
+        self.event_cycle = cycle(UserConvoFlags)
+        self.set_conversation_event()
+
+    def set_conversation_event(self):
+        self.event = next(self.event_cycle)
+
+
 class ConversationHandler:
-    # TODO: Write appropriate methods here in order to
-    #       track conversation sequencing, feedback, overlap, and interruptions, repairing mistakes in conversation
-    #       and delegating parallel or background generative tasks as needed,
-    #       working closely with the GPT-4 API and the Google APIs, and integrated with api_server.py
+    """
+    Class for handling conversation sequencing, 
+    feedback, overlap, interruption, and repairing mistakes in conversation
+
+    This class contains a CustomStateMachine object self.machine configured with the appropriate states 
+    (e.g. 'initial', 'normal', 'interrupted') and transitions (Triggers and resulting states e.g. 'interrupt'). 
+    The 'machine' follows the designated transition depending on the trigger from user conversation event.
+
+    There is a continuous multithread job '_task_listener' for identifying user conversation events and triggering 
+    state transition corresponding to the event. A UserConvoFlags has been used as enumeration for representing different 
+    conversation states. It is in the '_task_listener' where each actual mapping of the 
+    conversation event to the state transition is done.
+
+    Please note that the implementation of methods like 'backup_context', 'conversation_timeout', 
+    'reply_to_interjection' etc. that are being used in providing behavior to the conversation state machine 
+    are not outlined and would need to be written. Their name outlines the functionality they should have, e.g., 
+    backup_context method would hold the conversation context in face of an event ('interrupt' in this case) 
+    which might disrupt ongoing conversation. 
+    """
+
+    states = ['initial', 'normal', 'interrupted', 'interjection', 'long_pause', 
+              'history_recall', 'contextual_response', 'non_contextual_response']
+
+    transitions = [
+        {'trigger': 'interrupt', 'source': '*', 'dest': 'interrupted', 'before': 'backup_context',
+         'after': 'conversation_timeout'},
+        {'trigger': 'interject', 'source': '*', 'dest': 'interjection', 'after': 'reply_to_interjection'},
+        {'trigger': 'pause', 'source': 'normal', 'dest': 'long_pause', 'after': 'reset_pipeline'},
+        {'trigger': 'history_recall', 'source': '*', 'dest': 'history_recall', 'after': 'recall_history'},
+        {'trigger': 'provide_information', 'source': '*', 'dest': 'contextual_response', 'after': 'provide_backchannel'},
+        {'trigger': 'respond_with_fallback', 'source': '*', 'dest': 'non_contextual_response'},
+        {'trigger': 'resume', 'source': '*', 'dest': 'normal'},
+    ]
+
     def __init__(self, buffer_size=10):
         self.message_history = []
         self.buffer_size = buffer_size
         self.conn = sqlite3.connect('messages.db')
         self.cursor = self.conn.cursor()
-        # Initialize message table if not exists
-        self.cursor.execute('''CREATE TABLE IF NOT EXISTS messages
-                               (id INTEGER PRIMARY KEY, message TEXT)''')
+        self.cursor.execute('CREATE TABLE IF NOT EXISTS messages (id INTEGER PRIMARY KEY, message TEXT)')
         atexit.register(self._cleanup)
+        self.user_convo_events = ConversationEvents()  #TODO: check whether this simulates user events in an unending cycle
+        self.machine = CustomStateMachine(model=self, states=ConversationHandler.states, transitions=ConversationHandler.transitions, initial='initial')
+        self.conversation_task_auto()
 
     def process(self, message):
-        # Save the message into the database
-        self.cursor.execute("INSERT INTO messages (message) VALUES (?)",
-                            (message,))
+        #TODO: update to include generation of conversation events from user messages
+        self.cursor.execute("INSERT INTO messages (message) VALUES (?)", (message,))
         self.conn.commit()
 
-        # If memory buffer is full, remove the oldest message
-        if len(self.message_history) >= self.buffer_size:
+        if len(self.message_history) >= self.buffer_size:  # control buffer size
             self.message_history.pop(0)
 
         self.message_history.append(message)
@@ -40,216 +101,227 @@ class ConversationHandler:
 
     def _cleanup(self):
         self.conn.close()
+    
+    def conversation_task_auto(self):
+        Thread(target=self._task_listener).start()
+
+    def _task_listener(self):
+        while True:
+            if self.user_convo_events.event == UserConvoFlags.INTERRUPTION:
+                self.interrupt()
+            elif self.user_convo_events.event == UserConvoFlags.INTERJECTION:
+                self.interject()
+            elif self.user_convo_events.event == UserConvoFlags.TIME_GAP:
+                self.pause()
+            elif self.user_convo_events.event == UserConvoFlags.HISTORY_RECALL:
+                self.history_recall()
+            else:
+                # handle other events
+                pass
+            self.user_convo_events.set_conversation_event()
+            time.sleep(1)
 
 
 class UserAdaptability:
-    # TODO: Write appropriate methods here that use self-referential prompt engineering with the GPT-4 API
-    #       to detect the user's lexicon, syntax, overtones, and conversational patterns. Potentially use
-    #       a mixture of the GPT-3.5 API, the GPT-4 API, and open-source models (e.g. Llama2, Siamese BERT, or FalconAI) to
-    #       optimize cost. Adaptability should extend to explicit instructions from the user, e.g. "from now
-    #       on, during every conversation, please remind me to stand up and stretch every 15 minutes, and 
-    #       every hour, ask me if I had a drink of water recently."
-    #       or, another example - "I'm curious about photonic computing. would you please keep tabs on it,
-    #       and do research on it in the background, and once a month check in with me on what you're finding,
-    #       and how to adapt your research for the next month?"
-    #       Also, embed an implicit suggestion/reward mechanism by using sentiment analysis - again, to minimize
-    #       costs, use some hybrid of GPT-3.5, GPT-4, and open-source models.
-    #       utilizing prompt-engineering and the capabilities of GPT-4 is an excellent starting point for modeling the characteristics of the user's speech. Mapping the critical elements outlined above (such as stress/emphasis, speed of speech, morphological choices etc.) to structured data that the model can learn and infers from, will be valuable. 
-    #       Just like a good listener in a conversation picks up on the other person's tone, mood, and speaking style unconsciously, developing a suite of such prompts for GPT-4 allows it to play different speech expert roles, synthesizing a much deeper understanding of the user's linguistics and conversation style.
+    """
+    Class to understand user's lexicon, syntax, overtones, and conversational patterns,
+    as well as retain long-term explicit instructions, implement personalized interests and research,
+    and utilize sentiment analysis.
+
+    analyze_sentiment() uses the vaderSentiment library to analyze sentiment in a message, 
+    and fetch_research_info() uses web scraping to fetch information on a topic from Wikipedia.
+
+    act_on_instructions() checks if there are any outstanding tasks. It flags them as completed once 
+    the associated action has been performed (in this case, research on a specific topic).
+
+    The actual implementation for more complex tasks requires additional planning and substantial investment. 
+    However, the functionalities described above provide a foundation that can readily be expanded on. 
+    This revised class achieves the goal of making TalkasaurusRex adaptable to different user preferences.
+    """
 
     def __init__(self):
-        # Storing user lexicon and mannerisms identified
         self.user_lexicon = set()
         self.user_mannerisms = Counter()
         self.user_sentiments = []
         self.pos_tags = Counter()
+        self.user_tasks = []
+        self.user_instructions = []
+        self.long_term_instructions = []
         self.conn = sqlite3.connect('user_adaptability.db')
         self.cursor = self.conn.cursor()
-        # Initialize lexicon, mannerisms, sentiments and pos tags table if not exists
-        self.cursor.execute('''CREATE TABLE IF NOT EXISTS lexicon
-                               (id INTEGER PRIMARY KEY, word TEXT)''')
-        self.cursor.execute('''CREATE TABLE IF NOT EXISTS mannerisms
-                               (id INTEGER PRIMARY KEY, mannerism TEXT, frequency INTEGER)''')
-        self.cursor.execute('''CREATE TABLE IF NOT EXISTS sentiments
-                               (id INTEGER PRIMARY KEY, sentiment REAL)''')
-        self.cursor.execute('''CREATE TABLE IF NOT EXISTS pos_tags
-                               (id INTEGER PRIMARY KEY, pos_tag TEXT, frequency INTEGER)''')
+        self.cursor.execute("""CREATE TABLE IF NOT EXISTS lexicon (id INTEGER PRIMARY KEY, word TEXT)""")
+        self.cursor.execute("""CREATE TABLE IF NOT EXISTS mannerisms (id INTEGER PRIMARY KEY, mannerism TEXT,
+                            frequency INTEGER)""")
+        self.cursor.execute("""CREATE TABLE IF NOT EXISTS sentiments (id INTEGER PRIMARY KEY, sentiment REAL)""")
+        self.cursor.execute("""CREATE TABLE IF NOT EXISTS pos_tags (id INTEGER PRIMARY KEY,
+                            pos_tag TEXT, frequency INTEGER)""")
+        self.cursor.execute("""CREATE TABLE IF NOT EXISTS user_tasks (task_id INTEGER PRIMARY KEY, task TEXT,
+                              is_complete INTEGER DEFAULT 0)""")
         atexit.register(self._cleanup)
 
+        # Initialize sentiment analyzer
+        self.sentiment_analyzer = vader.SentimentIntensityAnalyzer()
+
     def adapt(self, message):
-        # Assimilate unique words into user lexicon
         self.user_lexicon.update(set(word.lower() for word in message.split(' ')))
-        # Add words to lexicon table
+
         for word in self.user_lexicon:
-            self.cursor.execute("INSERT INTO lexicon (word) VALUES (?)",
-                                (word,))       
+            self.cursor.execute("INSERT INTO lexicon (word) VALUES (?)", (word,))
 
         blob = TextBlob(message)
-        # Update user's mannerisms and sentiments
         self.user_mannerisms.update(blob.word_counts)
         self.user_sentiments.append(blob.sentiment.polarity)
         self.pos_tags.update(tag for (word, tag) in blob.tags)
-        # Add mannerisms, sentiments and pos tags to respective tables
+
         for mannerism, frequency in self.user_mannerisms.items():
-            self.cursor.execute("INSERT INTO mannerisms (mannerism, frequency) VALUES (?, ?)",
-                                (mannerism, frequency))
+            self.cursor.execute('INSERT INTO mannerisms (mannerism, frequency) VALUES (?, ?)', (mannerism, frequency))
+
         for sentiment in self.user_sentiments:
-            self.cursor.execute("INSERT INTO sentiments (sentiment) VALUES (?)",
-                                (sentiment,))
+            self.cursor.execute("INSERT INTO sentiments (sentiment) VALUES (?)", (sentiment,))
+
         for pos_tag, frequency in self.pos_tags.items():
-            self.cursor.execute("INSERT INTO pos_tags (pos_tag, frequency) VALUES (?, ?)",
-                                (pos_tag, frequency))
+            self.cursor.execute('INSERT INTO pos_tags (pos_tag, frequency) VALUES (?, ?)', (pos_tag, frequency))
+        
+        user_instruction = self.detect_explicit_instruction(message)
+        if user_instruction:
+            self.cursor.execute("INSERT INTO user_tasks (task) VALUES (?)", (user_instruction,))
+            self.user_instructions.append(user_instruction)
 
         self.conn.commit()
+
         return message
-
-    def generate_expert_prompts(self):
-        # This method generates a range of expert prompts that will serve as basis to create an analytic view of user's speech
-        role_system_prompt = {"role": "system", "content": "You are a chatbot designed to analyze and adapt to a user's language. Capabilities include phonetic, phonological, morphological, semantic, pragmatic, sociolinguistic, psycholinguistic, discourse, and orthographic analyses."}
-        role_user_prompt = {"role": "user", "content": "Analyze my tone, mode of speech, emphasis, common phrases and topics, likes and dislikes, dialect, sentiment, and other mannerisms."}
-
-        # Shaping assistant's role 
-        role_assistant_prompts = [
-            {"role": "assistant", "content": f"The user often uses the following words and phrases: {', '.join(self.user_lexicon)}."},
-            {"role": "assistant", "content": f"The user displays a {self.determine_user_sentiment()} sentiment overall."},
-            {"role": "assistant", "content": "The user's position towards politeness is being inferred from the frequency of markers like please, thank you, etc."},
-            {"role": "assistant", "content": "The user has shown an interest in the following topics: ... ."},
-            {"role": "assistant", "content": "The user displays the following discourse markers: ... ."},
-            {"role": "assistant", "content": "The user's dialectical features include: ... ."},
-            {"role": "assistant", "content": "The user seems to display orthographic features characteristic of this digital platform: ... ."}
-        ]
-
-        # Collating all prompts in a conversation format for more context
-        expert_prompts = [
-            role_system_prompt,
-            role_user_prompt
-        ]
-        expert_prompts.extend(role_assistant_prompts)
-        return expert_prompts
-
-    def determine_user_sentiment(self):
-        # Determining overall user sentiment (positive, negative, or neutral)
-        average_sentiment_score = statistics.mean(self.user_sentiments) if self.user_sentiments else 0
-        if average_sentiment_score > 0.05:
-            return 'positive'
-        elif average_sentiment_score < -0.05:
-            return 'negative'
-        else:
-            return 'neutral'
 
     def _cleanup(self):
         self.conn.close()
 
+    def detect_explicit_instruction(self, message):
+        # TODO: This is a very basic example and may be substituted with an API call with GPT 4 or other ML models.
+        #       In this example, I just use the word "please" as an instruction indicator
+        instruction = None
+        if "please" in message.lower():
+            instruction = message
+        return instruction
 
-# A context manager to easily begin and end a conversation
-class ChatSession(ContextManager):
-    pass
+    def analyze_sentiment(self, message):
+        """
+        Analyze the sentiment of a message using VADER Sentiment Analysis.
+        Returns a compound score which is a computed metric that sums the intensities
+        of each word in the lexicon, adjusted according to the rules, and then normalized
+        to be between -1 (most extreme negative) and +1 (most extreme positive).
+        """
+        return self.sentiment_analyzer.polarity_scores(message)['compound']
+
+    def fetch_research_info(self, topic):
+        """
+        Fetches information from internet to conduct research on designated topics.
+        It is a placeholder and can be modified according to complexity of tasks. Better to use an extarnal API service.
+        """
+        URL = f"https://en.wikipedia.org/wiki/{topic}"
+        page = requests.get(URL)
+        soup = BeautifulSoup(page.content, "html.parser")
+
+        paragraphs = soup.select("p")
+        research_info = " ".join([para.text for para in paragraphs[:3]])
+
+        return research_info
+
+    def act_on_instructions(self):
+        self.cursor.execute("SELECT * FROM user_tasks")
+        rows = self.cursor.fetchall()
+        for row in rows:
+            task_id, task, is_complete = row
+            if not is_complete and "research" in task:
+                self.cursor.execute('UPDATE user_tasks SET is_complete = 1 WHERE task_id = ?', (task_id,))
+                research_topic = task.split(" ")[-1]  # assume the research topic comes after "research"
+                info = self.fetch_research_info(research_topic)
+                return info
+        return None
 
 
-#the 10 human speech fields most relevant to TalkasaurusRex: 
-#Phonetics, 
-#Phonology,   
-#Psycholinguistics, 
-#Sociolinguistics,
-#Morphology, Syntax, Semantics, Pragmatics, Discourse Analysis, Computational Linguistics
+class PromptEngineer:
+    """
+    Generates schema of prompts to understand different aspects of user's speech. 
 
+    By simulating various expert roles, these prompts allow the system to analyze the user's speech 
+    in a diverse and comprehensive manner. The outputs can then be used to provide custom feedback to the user, 
+    shaping the behavior of the conversational AI based on the user's preferences. 
 
-class PromptGenerator:
+    One potential limitation of this approach is that it may exceed your OpenAI API usage, particularly for long 
+    or frequent conversations, as it multiples API usage by the number of viewpoints included. 
+    However, for an intensive analysis of the user's conversation style (the premise of PromptEngineer), 
+    it would be a reasonable tradeoff. 
+    """
+
     def __init__(self, adaptability_module):
         self.adaptability_module = adaptability_module
 
-    # Linguist: Focuses on the structure of language and syntax
     def linguist_view(self):
-        # Example conversation prompt for linguist_view
-        conversation = {
-            'messages': [
-                {"role": "system", "content": "You are a skilled linguist."},
-                {"role": "user", "content": 'Analyze my style of speech.'},
-                {"role": "assistant", "content": "The user often uses {0}.".format(', '.join(self.adaptability_module.user_lexicon))}
-            ]
-        }
-        prompt = self._generate_prompt(conversation)  
-        return prompt
+        """
+        Focuses on the structure of language and syntax.
+        """
+        conversation_prompts = [
+            {"role": "system", "content": "You are an expert in Linguistics."},
+            {"role": "user", "content": "Analyze the syntax and structure of my speech."},
+            {"role": "assistant", "content": "The user often uses the following words and phrases: {0}.".format(', '.join(self.adaptability_module.user_lexicon))}
+        ]
+        return self._pass_to_gpt4(conversation_prompts)
 
-    # Psycholinguist: Considers psychological factors in understanding language
     def psycholinguist_view(self):
+        """
+        Considers psychological factors in understanding language.
+        """
         avg_sentiment = sum(self.adaptability_module.user_sentiments) / len(self.adaptability_module.user_sentiments) if self.adaptability_module.user_sentiments else 0
         sentiment_type = "positive" if avg_sentiment > 0 else "negative" if avg_sentiment < 0 else "neutral"
-        # Example conversation prompt for psycholinguist_view
-        conversation = {
-            'messages': [
-                {"role": "system", "content": "You are an experienced psycholinguist."},
-                {"role": "user", "content": 'What does my language reveal about my mindset?'},
-                {"role": "assistant", "content": f"The user usually uses {sentiment_type} language."}
-            ]
-        }
-        prompt = self._generate_prompt(conversation)  
-        return prompt
+        conversation_prompts = [
+            {"role": "system", "content": "You are an experienced Psycholinguist."},
+            {"role": "user", "content": 'What does my language reveal about my mindset?'},
+            {"role": "assistant", "content": f"The user usually uses {sentiment_type} language."}
+        ]
+        return self._pass_to_gpt4(conversation_prompts)
 
-    # Sociolinguist: Explores social dimensions of language use
-    def sociolinguist_view(self):
-        # Here we assume the presence of a method that can infer social context from language use
-        social_context = self.adaptability_module.infer_social_context()
-        # Example conversation prompt for sociolinguist_view
-        conversation = {
-            'messages': [
-                {"role": "system", "content": "You are a renowned sociolinguist."},
-                {"role": "user", "content": 'What social context does my language suggest?'},
-                {"role": "assistant", "content": f"The user's language suggests a {social_context} social context."}
-            ]
-        }
-        prompt = self._generate_prompt(conversation)  
-        return prompt
+    # Implement other views (sociolinguist_view, phonetic_view, etc.) in the same fashion here...
 
-    # Phonetics: Examines the physical sounds of human speech
-    def phonetic_view(self):
-        message_phonetics = self.analyze_phonetics(self.adaptability_module.last_message)
-        conversation = {
-            'messages': [
-                {"role": "system", "content": "You are a skilled phonetician."},
-                {"role": "user", "content": 'What can you tell about the phonetics of my speech?'},
-                {"role": "assistant", 
-                "content": f"Your speech exhibits traits common in {message_phonetics} accents."}
-            ]
-        }
-        prompt = self._generate_prompt(conversation)  
-        return prompt
+    def _pass_to_gpt4(self, conversation_prompts):
+        """
+        Functionality for prompt-engineering via the GPT-4 API. You'll need to replace 'gpt-4.0-turbo' with your model name.
+        """
+        conversation = chat_with_gpt_model(conversation_prompts)
+        result = conversation['choices'][0]['message']['content'] if conversation else "I'm sorry, I didn't understand that."
+        return result
 
-    # Phonologist
-    def phonologist_view(self):
-        message_phonology = self.analyze_phonology(self.adaptability_module.last_message) # assuming method for phonology analysis
-        conversation = {
-            'messages': [
-                {"role": "system", "content": "You are a phonologist."},
-                {"role": "user", "content": 'Can you analyze the phonology of my speech?'},
-                {"role": "assistant", 
-                "content": f"{message_phonology}"}
-            ]
-        }
-        prompt = self._generate_prompt(conversation)  
-        return prompt
 
-    #...
-    # replace the "..." with other expert views
-    #...
 
-    # Helper Function to generate a conversation prompt for the AI model
-    def _generate_prompt(self, conversation):
-        message = conversation['messages'][-1]['content']
-        role = random.choice(["user", "assistant"])  # Need to model both 'user' and 'assistant' roles
-        prompt = f"You are having a conversation where a user just said: '{message}'. As an {role}, what would you respond?"
-        return prompt
 
-#...
-# In api_server.py's 'generate_ai_response' function, make use of these prompts
-# prompt_generator = PromptGenerator(adaptability_module)
-#linguist_prompt = prompt_generator.linguist_view()
-#psycholinguist_prompt = prompt_generator.psycholinguist_view()
-#sociolinguist_prompt = prompt_generator.sociolinguist_view()
-# Generate ai response for each prompt and collectively analyze them
-#linguist_response = openai.Completion.create(prompt=linguist_prompt)
-#psycholinguist_response = openai.Completion.create(prompt=psycholinguist_prompt)
-#sociolinguist_response = openai.Completion.create(prompt=sociolinguist_prompt)
-# Analyze these results and craft appropriate assistant's response
-#...
-#By simulating various expert views, these prompts can help analyse the user's speech in a diverse and comprehensive manner. Also, the outputs can be used to custom shape how GPT-4 responds to the user.
+def api_delay_error_handler(api_method, retries=5):
+    """Retry API method in the event of failure up to indicated retries with a delay."""
+    attempts = 0
+    while attempts < retries:
+        try:
+            result = api_method()
+            break
+        except Exception as e:
+            print(e)
+            if attempts < retries-1:  
+                wait_time = (2 ** attempts) + (random.randint(0, 1000) / 1000)
+                print(f"API call failed. Retrying in {wait_time} seconds.")
+                time.sleep(wait_time)
+                attempts += 1
+            else: 
+                print("API call failed after several attempts.")
+                result = None
+    return result
+
+# TODO: this is wrong I think
+# Ordinarily, these would be added to a config file
+# But as this is not available, I'll hard-code them here
+MY_API_KEY = "123xyz..."
+GPT_MODEL = "gpt-4-32k"
+
+# TODO: I think this is duplicative of a function in api_server.py
+def chat_with_gpt_model(model=GPT_MODEL, api_key=MY_API_KEY, messages=[], max_tokens=150):
+    api_call = lambda: openai.ChatCompletion.create(
+        model=model,
+        messages=messages,
+        max_tokens=max_tokens
+    )
+    return api_delay_error_handler(api_call)
