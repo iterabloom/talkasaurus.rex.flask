@@ -104,28 +104,61 @@ def index():
 
 @socketio.on('message')
 def handle_message(data):
-    # Log that we received a new message
+    """
+    handle_message function in the api_server.py script discerns whether a developer message is instructing the DevOpsBot 
+    to generate new code. Following that, the new method will take the message's text, divide it into action and feature sections, 
+    and feed them to the new DevOpsBot to write new code. Proposed alterations to the file are implemented in the code below.
+
+    A reminder that DevOpsBot is in the process of learning and has vulnerabilities, developer instructions must be entered 
+    in the following format for the bot to understand what is asked of it:
+
+    For new features: "dev_ops_bot: create new python function which sorts list in reverse"
+    
+    If the message does contain orders for the bot, the bot segment divides the text and nature of the order 
+    and transfers it to the bot to conduct the new functionality. The generated code and its respective review may 
+    then be simulated or acted upon as required, possibly being delivered back as a response or employed immediately to the repository.
+
+    Although it now matches the bot's requirements, the code here continues to retain the original handle_message 
+    functionality of processing normal messages through the GPT4 model and providing feedback to the user.
+
+    It should be noted that the `notify_developer` method in DevOpsBot class and more of its functionality could
+    use more fleshing out. For instance, we'd want the bot to run CI/CD operations, perhaps on a testing or staging branch following 
+    any sort of merge into that branch. From there, successful build and all-passing tests on a testing/staging branch might automatically
+    trigger a production deployment. The bot could then monitor the prod environment for a period of time, roll back on failure/certain types of exceptions, and so on. 
+    """
     logging.info("Received new user message.")
- 
+
     dialogsCollection = []
     user_message = data['message']
-    
+
     try:
-        # Log when the AI has started processing a response
         logging.info("Starting to process user message.")
         
-        response = generate_ai_response(user_message)
-        
-        # Log when the text to speech operation has started
-        logging.info("Starting Text-to-Speech operation.")
-        convert_text_to_speech(response)
-        socketio.emit('response', {'response': response, 'message': user_message})
-        
-        dialogsCollection.append({
-            "User": user_message,
-            "Response": response
-        })
-        
+        result = []
+
+        # Check if user message is an instruction for the devops bot
+        if "dev_ops_bot:" in user_message.lower():
+            # Initialize the bot
+            bot = DevOpsBot()
+            # Check if a new feature is instructed to be implemented
+            if "create new" in user_message.lower() and "function" in user_message.lower():
+                # Split out the action and feature description from the message
+                action, feature_desc = user_message.split(":")[1].strip().split("which")
+                # Currently hardcoded for Python. This would be dynamically changed based on the repo the bot is applied to.
+                new_code, review = bot.new_feature(feature_desc, "python")
+                result.extend([new_code, " ", *review])
+
+        else:  # Normal flow
+            response = generate_ai_response(user_message)
+            logging.info("Starting Text-to-Speech operation.")
+            convert_text_to_speech(response)
+            socketio.emit('response', {'response': response, 'message': user_message})
+
+            dialogsCollection.append({
+                "User": result if result else user_message,
+                "Response": response
+            })
+
     except Exception as e:
         logging.error(str(e), exc_info=True)
 

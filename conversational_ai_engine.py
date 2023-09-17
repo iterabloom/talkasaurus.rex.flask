@@ -6,14 +6,88 @@ from collections import Counter
 import random
 import time
 from textblob import TextBlob
-
-openai.api_key = os.getenv("OPENAI_API_KEY")
-
 from threading import Thread
 import transitions
 from transitions.extensions.states import Timeout, Tags, add_state_features
 from transitions.extensions.diagrams import GraphMachine
 from itertools import cycle
+from typing import Dict, List
+
+
+from github import Github
+from openai import OpenAI
+
+openai.api_key = os.getenv("OPENAI_API_KEY")
+
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+GITHUB_PERSONAL_ACCESS_TOKEN = os.getenv("GITHUB_PERSONAL_ACCESS_TOKEN")
+OWNER = "iterabloom"
+REPO_NAME = "talkasaurus.rex.flask"
+openai = OpenAI(OPENAI_API_KEY)
+github = Github(GITHUB_PERSONAL_ACCESS_TOKEN)
+repo = github.get_repo(f"{OWNER}/{REPO_NAME}")
+
+
+class DevOpsBot:
+    """
+    encloses various utilities geared towards Github issue tracking and deployment facilitation. 
+    This rudimentary bot lays down the groundwork but is presently mostly limited to managing Github 
+    issues and prompting manual_review for complicated situations.
+    """
+    def __init__(self):
+        self.github = Github(GITHUB_PERSONAL_ACCESS_TOKEN)
+        self.repo = self.github.get_repo(f"{OWNER}/{REPO_NAME}")
+        self.codebase = self.fetch_codebase()
+
+    def fetch_codebase(self):
+        contents = self.repo.get_contents("")
+        code = {}
+        while contents:
+            file_content = contents.pop(0)
+            if file_content.type == "dir":
+                contents.extend(self.repo.get_contents(file_content.path))
+            else:
+                code[file_content.name] = file_content.decoded_content.decode()
+        return code
+
+    def generate_code(self, feature_desc: str, language: str) -> str:
+        response = openai.Completion.create(
+            engine="text-davinci-003",
+            prompt=f"As a developer fluent in {language}, write functional code for the following feature: {feature_desc}",
+            temperature=0.5,
+            max_tokens=200,)
+        return response.choices[0].text.strip()
+
+    def review_code(self, code_snippet: str, language: str) -> List[str]:
+        prompt = f"As an experienced developer, review the following {language} code and suggest improvements: {code_snippet}"
+        response = openai.Completion.create(
+            engine="text-davinci-003",
+            prompt=prompt,
+            temperature=0.5,
+            max_tokens=200,
+        )
+        if "[manual_review]" in response.choices[0].text:
+            self.manual_review(response.choices[0].text, )
+        return response.choices[0].text.strip().split("\n")
+
+    def manual_review(self, review):
+        self.repo.create_issue(title="[MANUAL REVIEW NEEDED] Code Snippet Alert", body=f"Manual review is needed for the following code: {review}")
+
+    def new_feature(self, feature_desc: str, language: str):
+        new_code = self.generate_code(feature_desc, language)
+        review = self.review_code(new_code, language)
+        return new_code, review
+
+    def watch_issues(self):
+        issues_at_hand = self.repo.get_issues(state='open')
+        other_issues = []
+        for issue in issues_at_hand:
+            if "[MANUAL REVIEW NEEDED]" in issue.title:
+                # This is a pseudo function to notify a developer on the project to check this part of the code for further issues or problems and to manually write a test for this.
+                self.notify_developer(issue)
+            else:
+                other_issues.append(other_issues)
+        return other_issues
 
 
 @add_state_features(Timeout, Tags)
