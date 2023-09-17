@@ -5,6 +5,9 @@ from conversational_ai_engine import ConversationHandler, UserAdaptability
 
 #may need to mock external service calls?
 
+# TODO: doesn't cover what happens when test_conversation_state_management receives 
+#       the first 'Hello, bot.' message, following which 'Greeting' state ought to be invoked rather than 'initial' state
+
 class TestConversationHandlerHSM(unittest.TestCase):
     #This is just an example. realistically, states would probably be represented by numbers or constant variables, 
     # and state transitions would likely be tested by a system function or by analyzing 

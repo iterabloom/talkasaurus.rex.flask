@@ -1,3 +1,7 @@
+# TODO: This script requires unit tests and should be crash-tested 
+#       (with special focus on boundaries, edge and corner scenarios) to ensure solid error handling. 
+#       Stress testing would further enable us to optimize its performance
+
 import openai
 import os
 import atexit
@@ -368,6 +372,7 @@ class PromptEngineer:
 
     def _pass_to_gpt4(self, conversation_prompts):
         """
+        TODO: maybe chat_with_gpt_model can be imported from api_server.py?
         Functionality for prompt-engineering via the GPT-4 API. You'll need to replace 'gpt-4.0-turbo' with your model name.
         """
         conversation = chat_with_gpt_model(conversation_prompts)
@@ -378,7 +383,10 @@ class PromptEngineer:
 
 
 def api_delay_error_handler(api_method, retries=5):
-    """Retry API method in the event of failure up to indicated retries with a delay."""
+    """
+    TODO: update to except onResponse's status code
+    Retry API method in the event of failure up to indicated retries with a delay.
+    """
     attempts = 0
     while attempts < retries:
         try:
@@ -396,11 +404,9 @@ def api_delay_error_handler(api_method, retries=5):
                 result = None
     return result
 
-# TODO: this is wrong I think
-MY_API_KEY = "123xyz..."
-GPT_MODEL = "gpt-4-32k"
 
 # TODO: I think this is duplicative of a function in api_server.py
+GPT_MODEL = "gpt-4-32k"
 def chat_with_gpt_model(model=GPT_MODEL, api_key=MY_API_KEY, messages=[], max_tokens=150):
     api_call = lambda: openai.ChatCompletion.create(
         model=model,

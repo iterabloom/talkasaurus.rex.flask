@@ -1,10 +1,10 @@
 # TODO for TalkasaurusRex
-- [ ] Add Acceptance Test Coverage for Alexa Communication. [Issue #3](Link_Issue_3)
-- [ ] Increase Unit Test Coverage - Aim for > 90%. [Issue #4](Link_Issue_4)
-- [ ] Improve Error handling across the codebase. [Issue #5](Link_Issue_5)
-- [ ] Container orchestration with Kubernetes and monitoring with Prometheus, Grafana. [Issue #6](Link_Issue_6)
-- [ ] Add data validation at API gates. [Issue #7](Link_Issue_7)
-- [ ] Implement Hierarchical State Machines functionality. [Issue #9](Link_Issue_9)
+- [ ] Add Acceptance Test Coverage for Alexa Communication. [Issue #3](Issue_Link_3)
+- [ ] Increase Unit Test Coverage - Aim for > 90%. [Issue #4](Issue_Link_4)
+- [ ] Improve Error handling across the codebase. [Issue #5](Issue_Link_5)
+- [ ] Container orchestration with Kubernetes and monitoring with Prometheus, Grafana. [Issue #6](Issue_Link_6)
+- [ ] Add data validation at API gates. [Issue #7](Issue_Link_7)
+- [ ] Implement Hierarchical State Machines functionality. [Issue #9](Issue_Link_9)
 - [ ] Design and Implement the Conversation Handling Algorithm.
 - [ ] Create a User Adaptability Module that customizes the GPT-4 AI responses.
 - [ ] Enhance DevOpsBot for autonomous code debugging and writing.

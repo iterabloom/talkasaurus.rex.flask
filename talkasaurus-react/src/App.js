@@ -1,4 +1,6 @@
 /*
+TODO: add more error messages, especially around failed expectations of a conversational bot in a response
+
 allows users to record their voice, and it reflects the conversation in real-time. 
 It also fetches the conversation history database where the user can access their chat history at any point, 
 and export those conversations in CSV format
@@ -39,6 +41,9 @@ const App = () => {
     }
   }
 
+  // TODO: error handling for these fetch calls should be enhanced. When the APIs return non-OK responses 
+  //       (4xx, 5xx status codes), these scenarios should be handled and appropriate error message should be displayed to the user
+ 
   // Fetch conversations from backend
   const fetchConversations = () => {
     axios.get("/api/conversations").then(res => {

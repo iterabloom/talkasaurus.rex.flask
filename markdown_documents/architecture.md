@@ -24,6 +24,8 @@ Docker containers help us maintain consistency across various individuals and in
 
 Our server, api_server.py, establishes a socket connection with our frontend, receives and emits audio data (and other necessary data), makes Web Api requests to Google and OpenAI services, and generally enables the entire application's flow and functioning.
 
+TODO: discuss threading implementation
+
 5. ## Future Iterations: 
 
 Future updates include plans to handle interruptions, the integration of microservices modules, adding more sophistication to bot characteristics and complexity and implementing a high state machine or Petri nets for conversation control.

@@ -26,3 +26,7 @@ jobs:
         cd talkasaurus-react
         npm install
         npm run lint
+
+# A feature that can be added to the above workflow is the ability to auto-fix linting errors. 
+# This can be achieved by running `--fix` with the lint command and pushing the fixed code back to the repository. 
+# However, some like to manually review and fix linting errors.

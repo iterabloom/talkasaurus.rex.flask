@@ -1,3 +1,7 @@
+#TODO: there remains significant potential for more extensive testing coverage. 
+#      For example, we may test the conversation_task_auto method, 
+#      data validation, interjections, error handling, as well as the bot itself among other items.
+
 import unittest
 from flask_socketio import SocketIO, emit
 from flask import Flask

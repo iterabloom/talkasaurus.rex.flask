@@ -3,18 +3,35 @@ from flask import Flask, send_from_directory
 from flask_socketio import SocketIO
 import openai
 import os
-
-# OpenAI api key
-openai.api_key = os.environ.get('OPENAI_API_KEY')
-
 from google.cloud import speech_v1p1beta1 as speech
 from google.cloud import texttospeech
 from queue import Queue
 import base64
-import time
-from conversational_ai_engine import ConversationHandler, UserAdaptability
+import atexit
 import sqlite3
+from collections import Counter
+from typing import List, Dict
+import random
+import time
+from textblob import TextBlob
+from threading import Thread
+import transitions
+from transitions.extensions.states import Timeout, Tags, add_state_features
+from transitions.extensions.diagrams import GraphMachine
+from itertools import cycle
 import pandas as pd
+import vaderSentiment.vaderSentiment as vader
+
+from github import Github
+from openai import OpenAI
+
+openai.api_key = os.getenv("OPENAI_API_KEY")
+GITHUB_PERSONAL_ACCESS_TOKEN = os.getenv("GITHUB_PERSONAL_ACCESS_TOKEN")
+OWNER = "iterabloom"
+REPO_NAME = "talkasaurus.rex.flask"
+openai = OpenAI(OPENAI_API_KEY)
+github = Github(GITHUB_PERSONAL_ACCESS_TOKEN)
+repo = github.get_repo(f"{OWNER}/{REPO_NAME}")
 
 # Setting up logging
 logging.basicConfig(level=logging.DEBUG)
@@ -67,10 +84,15 @@ def storeConversationData(conversations):
     for conversation in conversations:
         cursor.execute('INSERT INTO conversations (user, bot) VALUES (?, ?)', (conversation['user'], conversation['bot']))
     conn.commit()
-    [print(f"User: {dialogue['User']}\nResponse: {dialogue['Response']}") for dialogue in conversations]
+    #[print(f"User: {dialogue['User']}\nResponse: {dialogue['Response']}") for dialogue in conversations]
 
 def generate_ai_response(user_message: str) -> str:   
     """ 
+    TODO: this function does not handle cases of no response being returned from the GPT4 API. 
+          The statement `response = None` overwrites the prior `response` assignment and its value is directly accessed 
+          on a later line (`return response['choices'][0]['message']['content'] if response else None`). 
+          This will throw a `TypeError: 'NoneType' object is not subscriptable` exception if the `response` is `None`.
+
     Chat with OpenAI's GPT4-32k. 
     The conversation state is managed internally with the help of message history. 
     Each message object in the messages array has three properties: role, content, and filename.
@@ -113,7 +135,10 @@ def index():
 @socketio.on('message')
 def handle_message(data):
     """
-    handle_message function in the api_server.py script discerns whether a developer message is instructing the DevOpsBot 
+    TODO: this function is quite long, housing distinct functionalities within itself, 
+          making it difficult to understand. Refactor it into smaller functions
+
+    The handle_message function discerns whether a developer message is instructing the DevOpsBot 
     to generate new code. Following that, the new method will take the message's text, divide it into action and feature sections, 
     and feed them to the new DevOpsBot to write new code. Proposed alterations to the file are implemented in the code below.
 
