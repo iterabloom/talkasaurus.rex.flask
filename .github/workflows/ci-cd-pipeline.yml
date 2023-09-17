@@ -1,14 +1,15 @@
-name: CI/CD Pipeline for TalkasaurusRex
+name: build, test, and dockerize
 
 on:
-  pull_request:
-    types: [opened, synchronize, reopened, edited]
   push:
+    branches:
+      - main
+  pull_request:
     branches:
       - main
 
 jobs:
-  build_and_test:
+  build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repo
@@ -19,37 +20,22 @@ jobs:
         with:
           python-version: 3.9
 
-      - name: Install Dependencies
-        run: pip install -r requirements.txt
-
-      - name: Set up Node
+      - name: Setup NodeJS
         uses: actions/setup-node@v2
         with:
-          node-version: 14.x
-      
-      - name: Install npm dependencies
+          node-version: '14'
+
+      - name: Install Python Dependencies
+        run: pip install -r requirements.txt
+
+      - name: Install npm Dependencies
         run: |
           cd talkasaurus-react
           npm install
 
-      - name: Run client tests
-        run: cd talkasaurus-react && npm test
-
-      - name: Run server tests
-        run: python -m unittest discover tests
-
-      - name: Build Docker Image
+      - name: Docker Build
         uses: docker/build-push-action@v2
         with:
           context: .
           push: false
           tags: talkasaurusrex:latest
-
-      - name: Send Build Notification
-        run: echo "Send build notification step goes here"
-
-      - name: Deploy to Production
-        if: github.ref == 'refs/heads/main' # Only run this step on main branch
-        run: |
-          echo Deploying application...
-          # The actual code for deploying application will go here

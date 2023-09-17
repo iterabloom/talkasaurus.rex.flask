@@ -8,3 +8,5 @@ librosa
 numpy
 pylint
 eslint
+pytest
+pytest-cov

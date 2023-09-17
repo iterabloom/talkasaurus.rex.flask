@@ -15,6 +15,11 @@ from google.cloud import texttospeech
 from queue import Queue
 import base64
 import time
+from conversational_ai_engine import ConversationHandler, UserAdaptability
+
+# Instantiate chat manager and adaptability module
+chat_handler = ConversationHandler()
+adaptability_module = UserAdaptability()
 
 class BufferStream(Queue):
     def __init__(self, buffer_max_size: int = 5):
@@ -63,8 +68,11 @@ def generate_ai_response(user_message: str) -> str:
     Each message object in the messages array has three properties: role, content, and filename.
     Increasing the max tokens increases response length up to a limit.
     """
+    # Pass the user message through the chat manager and adaptability module
+    processed_message = chat_handler.process(user_message)
+    adapted_message = adaptability_module.adapt(processed_message)
     conversation = {
-        'messages': [{"role": "user", "content": f"{user_message}"}]
+        'messages': [{"role": "user", "content": f"{adapted_message}"}]
     }
     
     attempts = 0

@@ -2,7 +2,7 @@
 
 ![a cartoon tyrannosaurus rex talks on an oversized 1980s-style telephone while stirring a cup of tea with a large aquamarine-colored spoon](talkasaurus-rex.png?raw=true "TalkasaurusRex"). 
 
-TalkasaurusRex is designed for naturally flowing conversation - adapting and mirroring the user's communication style. It leverages Google's Speech-to-Text, Text-to-Speech APIs, alongside the GPT4-32k model, creating an interaction akin to conversing with another human.
+TalkasaurusRex is designed for naturally flowing conversation - adapting to and mirroring the user's communication style. It leverages Google's Speech-to-Text, Text-to-Speech APIs, alongside the GPT4-32k model, creating an interaction akin to conversing with another human.
 
 ## Features
 - Gestures like Interjections, Nonword Vocalizations: The app can catch and react appropriately to "ummm", "hmm", "ah", and pauses in conversation to create a very human-like interaction.
@@ -19,9 +19,15 @@ TalkasaurusRex is designed for naturally flowing conversation - adapting and mir
 6. DevOpsBot Initiation: CI/CD pipelines setup using GitHub Actions.
 
 ## Getting Started
-Step-by-step guide to set up TalkasaurusRex 
-TODO: add guide here
+1. Clone the repository.
+2. You will need Python 3.x and NodeJS installed on your machine.
+3. Install the Python requirements with `pip install -r requirements.txt`.
+4. Run `npm install` in the `talkasaurus-react/` directory.
+5. Start the backend server with `python api_server.py`. The server will start on localhost:5000.
+6. Start the frontend server by running `npm start` in the `talkasaurus-react/` directory. The server will start on localhost:3000.
+7. Access the conversational AI via http://localhost:3000 in your web browser.
 
 ## Example Conversation
-Here's a typical conversation with TalkasaurusRex 
-TODO: add example here
+A typical conversation looks something like this:
+User: Hello, how was your day?
+Bot: Hello! As an artificial intelligence, I don't experience days in the same way a human might, but thank you for asking! How may I assist you today?
