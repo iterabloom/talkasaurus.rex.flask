@@ -40,4 +40,9 @@ Details: The proposed DevOpsBot should be able to test, debug and rewrite code w
 
 Outcome: An efficient and autonomous DevOpsBot that manages continuous improvements for TalkasaurusRex.
 
+
+### Task #4: Easy export and instant text search of transcribed conversation history
+TODO: rewrite this as sub tasks, as the above Tasks are
+The front end should make it easy for the user to visually browse through their entire conversation history, or do text searches with regular expressions, or perform advanced queries of the metadata. Since conversations can be wide-ranging over many topics, transcripts should include metadata that note when a change of subject is detected - thereby enabling every transcript to be presented, if desired, as a linear sequence of subject-specific tiles. This architecture would enable a user to find every time the conversation was about polar bears (for example). There should also be an option to "clean up" transcripts, i.e. remove the various technical symbols used by discourse transcription researchers, such as indications of speech overlap, transitional continuity, terminal pitch direction, accent, and lengthening -- so as to make them easier to read (while separately preserving the delicate/detailed transcript). Finally, export options should include the delicate transcript, the reader-friendly transcript, transcripts with subject/topic and other metadata, and search results of any query. Transcript exports should be easily made in bulk to either separate plain-text files or a single such file, and search result exports should be CSV- or ODF-formatted. Import functionality might also be interesting.
+
 TODO: for every subtask, an issue link should be provided that details the problem, steps, period, and requirements to chalk out the solution to the task.
