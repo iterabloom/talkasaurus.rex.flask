@@ -13,6 +13,8 @@ from queue import Queue
 import base64
 import time
 from conversational_ai_engine import ConversationHandler, UserAdaptability
+import sqlite3
+import pandas as pd
 
 # Setting up logging
 logging.basicConfig(level=logging.DEBUG)
@@ -59,6 +61,12 @@ def convert_text_to_speech(text: str):
     socketio.emit('response', {'audio_data': base64.b64encode(audio_data).decode()})
 
 def storeConversationData(conversations):
+    conn = sqlite3.connect('conversations.db')
+    cursor = conn.cursor()
+    cursor.execute('CREATE TABLE IF NOT EXISTS conversations (id INTEGER PRIMARY KEY, user TEXT, bot TEXT, timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP)')
+    for conversation in conversations:
+        cursor.execute('INSERT INTO conversations (user, bot) VALUES (?, ?)', (conversation['user'], conversation['bot']))
+    conn.commit()
     [print(f"User: {dialogue['User']}\nResponse: {dialogue['Response']}") for dialogue in conversations]
 
 def generate_ai_response(user_message: str) -> str:   
@@ -164,6 +172,21 @@ def handle_message(data):
 
     logging.info("Finished processing current user message.")
     storeConversationData(dialogsCollection)
+
+# route to retrieve conversation history in CSV
+@app.route('/api/conversations/csv', methods=['GET'])
+def conversations_csv():
+  conn = sqlite3.connect('conversations.db')
+  df = pd.read_sql_query('SELECT * FROM conversations', conn)
+  return df.to_csv(index=False)
+
+# route to retrieve conversation history in HTML
+@app.route('/api/conversations', methods=['GET'])
+def conversations_html():
+  conn = sqlite3.connect('conversations.db')
+  df = pd.read_sql_query('SELECT * FROM conversations', conn)
+  return df.to_html(index=False)
+
 
 if __name__ == '__main__':
     socketio.run(app, host='0.0.0.0"', port=int(os.getenv('PORT', 5000)))

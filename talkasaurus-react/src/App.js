@@ -1,16 +1,19 @@
 /*
-  This react app is divided into three main components:
+allows users to record their voice, and it reflects the conversation in real-time. 
+It also fetches the conversation history database where the user can access their chat history at any point, 
+and export those conversations in CSV format
+
+This react app is divided into three main components:
   1. AudioRecorder: A react-based audio recorder to capture mic input from the user
   2. sendAudioFile: An async function to send the recorded audio to the backend
   3. base64toUint8Array: This function converts base64 data into Uint8Array which is the required format for the Audio() object.
 */
 
-// Importing all the necessary modules
-import logo from './logo.svg';
-import './App.css';
+import React, { useEffect, useState } from 'react';
+import { SocketProvider, useSocket } from './SocketContextPanel';
 import axios from 'axios';
+import './App.css';
 import AudioRecorder from 'react-audio-recorder';
-import { SocketProvider, useSocket } from './SocketContextPanel'; // import the SocketProvider and useSocket hook
 
 /*
 The App function has been assigned as a constant with 3 core functions:
@@ -20,12 +23,15 @@ The App function has been assigned as a constant with 3 core functions:
 • The socket's response also gets converted into an audio url which React can work with and is played directly in the browser.
 */
 const App = () => {
-  const [url, setUrl] = useState(null)
+  // Define state variables
+  const [url, setUrl] = useState(null);
+  const [conversation, setConversation] = useState([]);  
+  const socket = useSocket();
 
+  // Function to send audio file to backend
   const sendAudioFile = async (data) => {
     const formData = new FormData();
     formData.append('file', data.blob, 'audio.wav');
-    // Post request at local backend server using axios
     try {
       await axios.post(`${process.env.REACT_APP_SERVER_URL}/audio_transcription`, formData);
     } catch (error) {
@@ -33,10 +39,31 @@ const App = () => {
     }
   }
 
-  // Establishing a connection with the socket
-  const socket = useSocket();
+  // Fetch conversations from backend
+  const fetchConversations = () => {
+    axios.get("/api/conversations").then(res => {
+      setConversation(res.data);
+    });
+  };
 
-  // Function to convert base64 data to Uint8Array as required by Audio()
+  // Export conversations as CSV
+  const exportConversationsCSV = () => {
+    let filename = 'conversations.csv';
+    let contentType = 'text/csv';
+    axios({
+      url: '/api/conversations/csv',
+      method: 'GET',
+      responseType: 'blob',
+    }).then((response) => {
+      let blob = new Blob([response.data], {type: 'text/csv'});
+      let link = document.createElement('a');
+      link.href = window.URL.createObjectURL(blob);
+      link.download = filename;
+      link.click();
+    });
+  };
+
+  // Convert base64 data to Uint8Array as required by Audio()
   const base64ToUint8Array = (base64) => {
     const binary_string = atob(base64);
     const len = binary_string.length;
@@ -47,7 +74,7 @@ const App = () => {
     return bytes;
   }
 
-  // Setup a socket response listener on render
+  // React useEffect hook to setup socket response listener and fetch conversation history
   useEffect(() => {
     socket.on("response", (res) => {
       // Convert response to ObjectURL and play the audio
@@ -56,15 +83,30 @@ const App = () => {
 
       const audio = new Audio(url);
       audio.play();
-    	})
-  	}, [socket]);  
+      fetchConversations(); // Re-fetch conversations on every response
+    });
+  }, [socket]);
 
   return (
     <SocketProvider>
       // Printable UI for the application
       <AudioRecorder sendFile={sendAudioFile} />
+      <h1>Conversations</h1>
+      <button className="btn btn-primary" onClick={fetchConversations}>Refresh</button>
+      <button className="btn btn-info" onClick={exportConversationsCSV}>Export CSV</button>
+      {conversation.map((item, index) => (
+        <div className="conversation-item">
+          <p>{item.User}: {item.Response}</p>
+        </div>
+      ))}
     </SocketProvider>
   );
 }
 
 export default App;
+
+
+//The React app only works in development mode for now. The complete and deploy-ready application requires more work. For instance, Docker related scripts need to be edited to reflect this change. 
+
+
+//TODO: one test checks if the Refresh button fetches the conversation data and another checks if the audio plays upon recording and receiving responses
