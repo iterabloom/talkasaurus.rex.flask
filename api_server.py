@@ -1,7 +1,6 @@
 import logging
 from flask import Flask, send_from_directory
 from flask_socketio import SocketIO
-import openai
 import os
 from google.cloud import speech_v1p1beta1 as speech
 from google.cloud import texttospeech
@@ -18,16 +17,16 @@ from threading import Thread
 from itertools import cycle
 import pandas as pd
 import vaderSentiment.vaderSentiment as vader
+from conversational_ai_engine import DevOpsBot
 
-from github import Github
-from openai import OpenAI
-
+import openai
 openai.api_key = os.getenv("OPENAI_API_KEY")
 openai.organization = os.getenv("OPENAI_ORGANIZATION")
+
+from github import Github
 GITHUB_PERSONAL_ACCESS_TOKEN = os.getenv("GITHUB_PERSONAL_ACCESS_TOKEN")
 OWNER = "iterabloom"
 REPO_NAME = "talkasaurus.rex.flask"
-openai = OpenAI(OPENAI_API_KEY)
 github = Github(GITHUB_PERSONAL_ACCESS_TOKEN)
 repo = github.get_repo(f"{OWNER}/{REPO_NAME}")
 
@@ -35,7 +34,9 @@ repo = github.get_repo(f"{OWNER}/{REPO_NAME}")
 logging.basicConfig(level=logging.DEBUG)
 
 # Instantiate chat manager and adaptability module
+from conversational_ai_engine import ConversationHandler
 chat_handler = ConversationHandler()
+from conversational_ai_engine import UserAdaptability
 adaptability_module = UserAdaptability()
 
 class BufferStream(Queue):

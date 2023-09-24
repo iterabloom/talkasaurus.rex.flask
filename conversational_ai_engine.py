@@ -16,7 +16,9 @@ from transitions.extensions.states import Timeout, Tags, add_state_features
 from transitions.extensions.diagrams import GraphMachine
 from itertools import cycle
 from typing import Dict, List
-
+import vaderSentiment.vaderSentiment as vader
+import requests
+from bs4 import BeautifulSoup
 
 from github import Github
 from openai import OpenAI
@@ -27,7 +29,6 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 GITHUB_PERSONAL_ACCESS_TOKEN = os.getenv("GITHUB_PERSONAL_ACCESS_TOKEN")
 OWNER = "iterabloom"
 REPO_NAME = "talkasaurus.rex.flask"
-openai = OpenAI(OPENAI_API_KEY)
 github = Github(GITHUB_PERSONAL_ACCESS_TOKEN)
 repo = github.get_repo(f"{OWNER}/{REPO_NAME}")
 
