@@ -26,6 +26,7 @@ from github import Github
 from openai import OpenAI
 
 openai.api_key = os.getenv("OPENAI_API_KEY")
+openai.organization = os.getenv("OPENAI_ORGANIZATION")
 GITHUB_PERSONAL_ACCESS_TOKEN = os.getenv("GITHUB_PERSONAL_ACCESS_TOKEN")
 OWNER = "iterabloom"
 REPO_NAME = "talkasaurus.rex.flask"
