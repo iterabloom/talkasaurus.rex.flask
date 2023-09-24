@@ -15,9 +15,6 @@ import random
 import time
 from textblob import TextBlob
 from threading import Thread
-import transitions
-from transitions.extensions.states import Timeout, Tags, add_state_features
-from transitions.extensions.diagrams import GraphMachine
 from itertools import cycle
 import pandas as pd
 import vaderSentiment.vaderSentiment as vader
